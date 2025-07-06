@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Search, User, Bell, Plus, ChevronDown, Filter, Download, Star, TrendingUp, Code2, Sparkles } from "lucide-react"
+import { Search, User, Bell, Plus, ChevronDown, Code2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
@@ -16,7 +16,6 @@ interface NavigationLayoutProps {
 }
 
 export const NavigationLayout: React.FC<NavigationLayoutProps> = ({ className, children, user }) => {
-  const [activeFilter, setActiveFilter] = React.useState("Recommended")
   const [searchQuery, setSearchQuery] = React.useState("")
   const router = useRouter()
   const supabase = createClient()
@@ -27,14 +26,6 @@ export const NavigationLayout: React.FC<NavigationLayoutProps> = ({ className, c
     { label: "Creators", href: "/creators" },
     { label: "Documentation", href: "/docs" },
     { label: "Pricing", href: "/pricing" }
-  ]
-
-  const filterOptions = [
-    { label: "Recommended", icon: Sparkles },
-    { label: "Most Downloaded", icon: Download },
-    { label: "Most Bookmarked", icon: Star },
-    { label: "Newest", icon: Filter },
-    { label: "Trending", icon: TrendingUp }
   ]
 
   const handleSignOut = async () => {
@@ -132,34 +123,9 @@ export const NavigationLayout: React.FC<NavigationLayoutProps> = ({ className, c
         </div>
       </header>
 
-      {/* Filter Pills */}
-      <div className="border-b border-border bg-background">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center space-x-2 py-4 overflow-x-auto">
-            {filterOptions.map((filter) => {
-              const Icon = filter.icon
-              return (
-                <button
-                  key={filter.label}
-                  onClick={() => setActiveFilter(filter.label)}
-                  className={cn(
-                    "flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
-                    activeFilter === filter.label
-                      ? "bg-foreground text-background"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{filter.label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6">
         {children}
       </main>
     </div>

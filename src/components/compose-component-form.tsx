@@ -16,7 +16,14 @@ import {
   type ComposeComponentFormData 
 } from '@/lib/types'
 
-const DEFAULT_CODE = `@Composable
+const DEFAULT_CODE = `package com.example.composeforge
+
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+
+@Composable
 fun MyComponent(
     modifier: Modifier = Modifier
 ) {
@@ -32,11 +39,6 @@ fun MyComponent(
 fun MyComponentPreview() {
     MyComponent()
 }`
-
-const DEFAULT_IMPORTS = `import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview`
 
 interface ComposeComponentFormProps {
   onSubmit: (data: ComposeComponentFormData) => Promise<void>
@@ -58,7 +60,6 @@ export function ComposeComponentForm({
     description: initialData?.description || '',
     code: initialData?.code || DEFAULT_CODE,
     category: initialData?.category || 'other',
-    imports: initialData?.imports || DEFAULT_IMPORTS,
     min_sdk_version: initialData?.min_sdk_version || DEFAULT_MIN_SDK_VERSION,
     compose_version: initialData?.compose_version || DEFAULT_COMPOSE_VERSION
   })
@@ -165,38 +166,12 @@ export function ComposeComponentForm({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Imports</CardTitle>
-          <CardDescription>
-            Required imports for your component (optional)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="border rounded-md overflow-hidden">
-            <Editor
-              height="150px"
-              defaultLanguage="kotlin"
-              value={formData.imports}
-              onChange={(value) => setFormData({ ...formData, imports: value || '' })}
-              theme="vs-dark"
-              options={{
-                minimap: { enabled: false },
-                fontSize: 14,
-                lineNumbers: 'on',
-                scrollBeyondLastLine: false,
-                wordWrap: 'on'
-              }}
-            />
-          </div>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
           <CardTitle>Component Code *</CardTitle>
           <CardDescription>
-            Write your Jetpack Compose component code here
+            Write your complete Jetpack Compose component code including package declaration and imports
           </CardDescription>
         </CardHeader>
         <CardContent>

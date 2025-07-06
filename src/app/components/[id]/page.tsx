@@ -1,23 +1,38 @@
 import { notFound } from 'next/navigation'
+import { createClient } from '@/utils/supabase/server'
 import { getComposeComponentWithStats } from '@/lib/services/compose-components'
 import { NavigationLayout } from '@/components/navigation-layout'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Download, Heart, Eye, Code2, Copy, Calendar, Shield, Package2 } from 'lucide-react'
-import Editor from '@monaco-editor/react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Download, Heart, Eye } from 'lucide-react'
 import Link from 'next/link'
+import { ComponentDetailClient } from './_components/component-detail-client'
+import { ComponentActions } from './_components/component-actions'
 
-export default async function ComponentDetailPage({ params }: { params: { id: string } }) {
-  let component
+export default async function ComponentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  let component
   try {
-    component = await getComposeComponentWithStats(params.id)
+    component = await getComposeComponentWithStats(id)
+    
+    // Increment view count
+    try {
+      await supabase
+        .from('compose_components')
+        .update({ view_count: component.view_count + 1 })
+        .eq('id', id)
+    } catch (error) {
+      console.error('Failed to increment view count:', error)
+    }
   } catch (error) {
     notFound()
   }
 
   return (
-    <NavigationLayout>
+    <NavigationLayout user={user}>
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -28,79 +43,7 @@ export default async function ComponentDetailPage({ params }: { params: { id: st
               <p className="text-muted-foreground text-lg">{component.description}</p>
             </div>
 
-            {/* Code Preview */}
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Component Code</CardTitle>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigator.clipboard.writeText(component.code)}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy
-                    </Button>
-                    <a href={`/api/compose-components/${component.id}/download`} download>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download
-                      </Button>
-                    </a>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="border rounded-md overflow-hidden">
-                  <Editor
-                    height="500px"
-                    defaultLanguage="kotlin"
-                    value={component.code}
-                    theme="vs-dark"
-                    options={{
-                      readOnly: true,
-                      minimap: { enabled: true },
-                      fontSize: 14,
-                      lineNumbers: 'on',
-                      scrollBeyondLastLine: false,
-                      wordWrap: 'on',
-                      automaticLayout: true
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Imports */}
-            {component.imports && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Required Imports</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="border rounded-md overflow-hidden">
-                    <Editor
-                      height="150px"
-                      defaultLanguage="kotlin"
-                      value={component.imports}
-                      theme="vs-dark"
-                      options={{
-                        readOnly: true,
-                        minimap: { enabled: false },
-                        fontSize: 14,
-                        lineNumbers: 'on',
-                        scrollBeyondLastLine: false,
-                        wordWrap: 'on'
-                      }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <ComponentDetailClient component={component} />
           </div>
 
           {/* Sidebar */}
@@ -135,20 +78,7 @@ export default async function ComponentDetailPage({ params }: { params: { id: st
             </Card>
 
             {/* Actions */}
-            <Card>
-              <CardContent className="pt-6 space-y-3">
-                <Button className="w-full" variant={component.is_favorited ? "secondary" : "default"}>
-                  <Heart className={`h-4 w-4 mr-2 ${component.is_favorited ? 'fill-current' : ''}`} />
-                  {component.is_favorited ? 'Unfavorite' : 'Favorite'}
-                </Button>
-                <a href={`/api/compose-components/${component.id}/download`} download className="w-full">
-                  <Button className="w-full" variant="outline">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Component
-                  </Button>
-                </a>
-              </CardContent>
-            </Card>
+            <ComponentActions component={component} user={user} />
 
             {/* Technical Details */}
             <Card>

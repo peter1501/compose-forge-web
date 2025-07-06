@@ -37,7 +37,6 @@ export interface ComposeComponentFormData {
   description: string
   code: string
   category: string
-  imports?: string
   min_sdk_version?: number
   compose_version?: string
 }

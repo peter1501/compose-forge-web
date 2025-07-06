@@ -18,7 +18,7 @@ export default async function DashboardPage() {
   // Get recent components for the dashboard
   let components = []
   try {
-    const result = await listComposeComponents({ limit: 8 })
+    const result = await listComposeComponents({ limit: 8 }, supabase)
     components = result.components
   } catch (error) {
     console.error('Error loading components:', error)

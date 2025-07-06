@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/client'
+import { SupabaseClient } from '@supabase/supabase-js'
 import type { 
   ComposeComponent, 
   ComposeComponentInsert, 
@@ -11,17 +12,17 @@ import type {
 
 const ITEMS_PER_PAGE = 20
 
-export async function createComposeComponent(data: ComposeComponentInsert) {
-  const supabase = createClient()
+export async function createComposeComponent(data: ComposeComponentInsert, supabase?: SupabaseClient) {
+  const client = supabase || createClient()
   
   // If author_id is not provided, get it from the current user
   if (!data.author_id) {
-    const { data: user } = await supabase.auth.getUser()
+    const { data: user } = await client.auth.getUser()
     if (!user.user) throw new Error('Not authenticated')
     data.author_id = user.user.id
   }
   
-  const { data: component, error } = await supabase
+  const { data: component, error } = await client
     .from('compose_components')
     .insert(data)
     .select()
@@ -89,12 +90,12 @@ export async function getComposeComponentWithStats(id: string): Promise<ComposeC
   return data
 }
 
-export async function listComposeComponents(filters: ComposeComponentFilters = {}) {
-  const supabase = createClient()
+export async function listComposeComponents(filters: ComposeComponentFilters = {}, supabase?: SupabaseClient) {
+  const client = supabase || createClient()
   const { category, search, authorId, page = 1, limit = ITEMS_PER_PAGE } = filters
   const offset = (page - 1) * limit
   
-  let query = supabase
+  let query = client
     .from('compose_components_with_stats')
     .select('*', { count: 'exact' })
   
@@ -255,26 +256,8 @@ export async function downloadComposeComponent(componentId: string) {
   const component = await getComposeComponent(componentId)
   await incrementDownloadCount(componentId)
   
-  // Create a Kotlin file content
-  const kotlinContent = `package com.example.composeforge
-
-${component.imports || ''}
-
-/**
- * ${component.name}
- * 
- * ${component.description}
- * 
- * Downloaded from ComposeForge
- * Author: ${component.author.username}
- * Min SDK: ${component.min_sdk_version}
- * Compose Version: ${component.compose_version}
- */
-
-${component.code}`
-  
   return {
-    content: kotlinContent,
+    content: component.code,
     filename: `${component.name.replace(/\s+/g, '_')}.kt`
   }
 }
