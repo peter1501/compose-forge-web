@@ -20,6 +20,12 @@ export default function NewComponentPage() {
 
       if (!response.ok) {
         const error = await response.json()
+        
+        // Check for specific error cases
+        if (response.status === 503 && error.error.includes('migration')) {
+          throw new Error('Database setup required. Please follow the instructions in /docs/tech/database-setup.md to run the migration.')
+        }
+        
         throw new Error(error.error || 'Failed to create component')
       }
 

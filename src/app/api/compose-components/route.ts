@@ -70,10 +70,26 @@ export async function POST(request: NextRequest) {
     })
     
     return NextResponse.json(component, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating compose component:', error)
+    
+    // Check for specific database errors
+    if (error.code === '42P01') {
+      return NextResponse.json(
+        { error: 'Database tables not found. Please run the migration first.' },
+        { status: 503 }
+      )
+    }
+    
+    if (error.message === 'Not authenticated') {
+      return NextResponse.json(
+        { error: 'Please sign in to create components' },
+        { status: 401 }
+      )
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to create component' },
+      { error: error.message || 'Failed to create component' },
       { status: 500 }
     )
   }
