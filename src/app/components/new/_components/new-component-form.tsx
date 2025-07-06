@@ -14,6 +14,7 @@ export function NewComponentForm() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'same-origin', // Include cookies
         body: JSON.stringify(data),
       })
 

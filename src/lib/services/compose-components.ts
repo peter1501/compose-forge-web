@@ -14,15 +14,16 @@ const ITEMS_PER_PAGE = 20
 export async function createComposeComponent(data: ComposeComponentInsert) {
   const supabase = createClient()
   
-  const { data: user } = await supabase.auth.getUser()
-  if (!user.user) throw new Error('Not authenticated')
+  // If author_id is not provided, get it from the current user
+  if (!data.author_id) {
+    const { data: user } = await supabase.auth.getUser()
+    if (!user.user) throw new Error('Not authenticated')
+    data.author_id = user.user.id
+  }
   
   const { data: component, error } = await supabase
     .from('compose_components')
-    .insert({
-      ...data,
-      author_id: user.user.id
-    })
+    .insert(data)
     .select()
     .single()
   

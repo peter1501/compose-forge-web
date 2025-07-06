@@ -31,11 +31,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    console.log('Auth check:', { user: user?.id, authError })
     
     if (!user) {
+      console.error('No user found in request')
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized - Please sign in to create components' },
         { status: 401 }
       )
     }
