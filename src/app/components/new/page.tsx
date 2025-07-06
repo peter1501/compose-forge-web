@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { NavigationLayout } from '@/components/navigation-layout'
-import { ComposeComponentForm } from '@/components/compose-component-form'
+import { ComponentCreationForm } from '@/components/compose-components/component-creation-form'
 import type { ComposeComponentFormData } from '@/lib/types'
 
 async function createComponent(data: ComposeComponentFormData) {
@@ -84,7 +84,7 @@ export default async function NewComponentPage() {
           </p>
         </div>
         
-        <ComposeComponentForm onSubmit={createComponent} />
+        <ComponentCreationForm onSubmit={createComponent} />
       </div>
     </NavigationLayout>
   )

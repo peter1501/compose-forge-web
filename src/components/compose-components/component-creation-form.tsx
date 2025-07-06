@@ -2,8 +2,8 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { KotlinComposeEditor } from '@/components/kotlin-playground/kotlin-compose-editor'
-import { KotlinComposePreview } from '@/components/kotlin-playground/kotlin-compose-preview'
+import { KotlinComposeEditor } from '@/components/compose-components/kotlin-playground/kotlin-compose-editor'
+import { KotlinComposePreview } from '@/components/compose-components/kotlin-playground/kotlin-compose-preview'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -87,7 +87,7 @@ interface ComposeComponentFormProps {
   submitLabel?: string
 }
 
-export function ComposeComponentForm({ 
+export function ComponentCreationForm({ 
   onSubmit, 
   initialData,
   submitLabel = 'Create Component'

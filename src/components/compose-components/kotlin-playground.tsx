@@ -1,3 +1,18 @@
+/**
+ * KotlinPlayground - Base Component
+ * 
+ * Purpose: Core integration with the JetBrains Kotlin Playground library.
+ * This component handles the low-level integration including:
+ * - Loading and initializing the Kotlin Playground scripts
+ * - Managing CodeMirror editor instances
+ * - Handling code compilation and execution
+ * - Detecting code changes through polling
+ * 
+ * Used by: KotlinComposeEditor, KotlinComposePreview
+ * 
+ * Note: This is a base component. For Compose-specific functionality,
+ * use KotlinComposeEditor or KotlinComposePreview instead.
+ */
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
@@ -89,7 +104,7 @@ export function KotlinPlayground({
           // Wait a bit for CodeMirror to fully initialize
           setTimeout(() => {
             // Poll for changes since Kotlin Playground doesn't expose a clean API
-            const checkInterval = window.setInterval(() => {
+            const checkForChanges = () => {
               try {
                 const codeMirror = containerRef.current?.querySelector('.CodeMirror')
                 if (codeMirror) {
@@ -131,10 +146,10 @@ export function KotlinPlayground({
               } catch (err) {
                 // Silently ignore errors during polling
               }
-            }, 500)
+            }
             
             // Store interval for cleanup
-            (containerRef.current as any)._checkInterval = checkInterval
+            (containerRef.current as any)._checkInterval = window.setInterval(checkForChanges, 500)
           }, 1500) // Wait for playground to initialize
         }
 
@@ -171,14 +186,15 @@ export function KotlinPlayground({
     } catch (err) {
       console.error('Failed to initialize Kotlin Playground:', err)
     }
-  }, [isLoaded, isInitialized, highlightOnly, theme, targetPlatform, outputHeight, autoComplete, highlightOnFly, onCodeChange, readOnly, autoRun])
+  }, [isLoaded, isInitialized, highlightOnly, theme, targetPlatform, outputHeight, autoComplete, highlightOnFly, onCodeChange, readOnly, autoRun, code])
 
   // Cleanup on unmount
   useEffect(() => {
+    const currentRef = containerRef.current
     return () => {
-      const checkInterval = (containerRef.current as any)?._checkInterval
+      const checkInterval = (currentRef as any)?._checkInterval
       if (checkInterval) {
-        window.clearInterval(checkInterval)
+        clearInterval(checkInterval)
       }
     }
   }, [])

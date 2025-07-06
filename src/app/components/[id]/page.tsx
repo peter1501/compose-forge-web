@@ -5,7 +5,7 @@ import { NavigationLayout } from '@/components/navigation-layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Download, Heart, Eye } from 'lucide-react'
 import Link from 'next/link'
-import { ComponentDetailClient } from './_components/component-detail-client'
+import { ComponentDetailView } from '@/components/compose-components/component-detail-view'
 import { ComponentActions } from './_components/component-actions'
 
 export default async function ComponentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -43,7 +43,7 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
               <p className="text-muted-foreground text-lg">{component.description}</p>
             </div>
 
-            <ComponentDetailClient component={component} />
+            <ComponentDetailView component={component} />
           </div>
 
           {/* Sidebar */}

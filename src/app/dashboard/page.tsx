@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { NavigationLayout } from '@/components/navigation-layout'
 import { listComposeComponents } from '@/lib/services/compose-components'
-import { ComposeComponentGrid } from '@/components/compose-component-grid'
+import { ComposeComponentGrid } from '@/components/compose-components/component-grid'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
 

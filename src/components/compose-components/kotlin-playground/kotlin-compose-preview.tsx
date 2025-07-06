@@ -1,3 +1,27 @@
+/**
+ * KotlinComposePreview - Preview-Only Renderer Component
+ * 
+ * Purpose: Renders only the output of Compose code without showing the editor.
+ * This component:
+ * - Hides the code editor completely
+ * - Auto-compiles code on mount (configurable)
+ * - Provides compilation state callbacks
+ * - Shows loading states during compilation
+ * - Monitors iframe content to detect successful rendering
+ * 
+ * Used in:
+ * - ComponentCreationForm: Shows live preview below the editor
+ * - ComponentDetailView: Shows the interactive component preview
+ * 
+ * Key Features:
+ * - CSS-based hiding of editor elements
+ * - Compilation state management (idle, compiling, success, error)
+ * - Canvas detection for proper preview readiness
+ * - Error handling and display
+ * 
+ * Note: This component tracks compilation state to ensure screenshots
+ * can only be taken when the preview is fully rendered.
+ */
 'use client'
 
 import { useEffect, useRef, useState } from 'react'

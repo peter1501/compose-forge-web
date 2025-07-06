@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { ComposeComponentGrid } from '@/components/compose-component-grid'
+import { ComposeComponentGrid } from '@/components/compose-components/component-grid'
 import { Package, Plus, Filter, Download, Star, TrendingUp, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'

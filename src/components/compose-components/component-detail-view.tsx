@@ -1,3 +1,24 @@
+/**
+ * ComposePreview - Component Detail View
+ * 
+ * Purpose: Displays a complete view of an existing Compose component.
+ * This is the main component used on component detail pages to show:
+ * - Live interactive preview of the component
+ * - Read-only code viewer with syntax highlighting
+ * - Copy code to clipboard functionality
+ * - Download code as .kt file functionality
+ * 
+ * Used in:
+ * - Component detail pages (/components/[id])
+ * - Currently wrapped by ComponentDetailClient (to be removed)
+ * 
+ * Layout:
+ * - Top card: Live preview (auto-compiles on mount)
+ * - Bottom card: Read-only code with copy/download buttons
+ * 
+ * Note: This component is for viewing existing components only.
+ * For creating new components, see ComposeComponentForm.
+ */
 'use client'
 
 import { useState } from 'react'
@@ -8,11 +29,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Copy, Download } from 'lucide-react'
 import type { ComposeComponentWithStats } from '@/lib/types'
 
-interface ComposePreviewProps {
+interface ComponentDetailViewProps {
   component: ComposeComponentWithStats
 }
 
-export function ComposePreview({ component }: ComposePreviewProps) {
+export function ComponentDetailView({ component }: ComponentDetailViewProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {

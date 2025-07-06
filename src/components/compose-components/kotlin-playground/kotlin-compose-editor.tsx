@@ -1,3 +1,21 @@
+/**
+ * KotlinComposeEditor - Compose Code Editor Component
+ * 
+ * Purpose: Specialized editor for Compose Multiplatform code with:
+ * - Pre-configured for compose-wasm target platform
+ * - Optional run button visibility
+ * - Auto-completion and syntax highlighting enabled
+ * - Configurable output height for preview area
+ * 
+ * Used in:
+ * - ComponentCreationForm: For editing new components (with hidden run button)
+ * - ComponentDetailView: For read-only code display with syntax highlighting
+ * 
+ * Key Features:
+ * - Wraps KotlinPlayground with Compose-specific defaults
+ * - Can hide run button for controlled compilation workflows
+ * - Supports both editable and read-only modes
+ */
 'use client'
 
 import { useEffect } from 'react'
