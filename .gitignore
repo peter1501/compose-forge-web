@@ -232,3 +232,6 @@ storybook-static/
 # Misc
 .npmrc.local
 .yarnrc.local
+
+# MCP config (contains sensitive tokens)
+.mcp.json
