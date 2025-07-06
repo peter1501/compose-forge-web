@@ -34,7 +34,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center px-4 bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
@@ -68,7 +68,7 @@ export default function LoginPage() {
               />
             </div>
             {error && (
-              <div className="text-sm text-red-500">
+              <div className="text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -81,11 +81,11 @@ export default function LoginPage() {
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </Button>
-            <p className="text-sm text-center text-slate-600">
+            <p className="text-sm text-center text-muted-foreground">
               Don&apos;t have an account?{' '}
               <Link
                 href="/signup"
-                className="font-medium text-slate-900 hover:underline"
+                className="font-medium text-primary hover:underline"
               >
                 Sign up
               </Link>

@@ -86,28 +86,28 @@ export default async function ComponentsPage() {
     <NavigationLayout user={user}>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Component Library</h1>
-        <p className="text-gray-400">
+        <p className="text-muted-foreground">
           Production-ready Jetpack Compose components following Material 3 guidelines
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
-          <div className="text-2xl font-bold text-green-400">1,234</div>
-          <div className="text-sm text-gray-400">Total Components</div>
+        <div className="bg-card border border-border rounded-lg p-4">
+          <div className="text-2xl font-bold text-primary">1,234</div>
+          <div className="text-sm text-muted-foreground">Total Components</div>
         </div>
-        <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
-          <div className="text-2xl font-bold text-blue-400">567</div>
-          <div className="text-sm text-gray-400">Active Creators</div>
+        <div className="bg-card border border-border rounded-lg p-4">
+          <div className="text-2xl font-bold text-secondary">567</div>
+          <div className="text-sm text-muted-foreground">Active Creators</div>
         </div>
-        <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
-          <div className="text-2xl font-bold text-purple-400">89K</div>
-          <div className="text-sm text-gray-400">Downloads</div>
+        <div className="bg-card border border-border rounded-lg p-4">
+          <div className="text-2xl font-bold text-primary">89K</div>
+          <div className="text-sm text-muted-foreground">Downloads</div>
         </div>
-        <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
-          <div className="text-2xl font-bold text-orange-400">4.8</div>
-          <div className="text-sm text-gray-400">Average Rating</div>
+        <div className="bg-card border border-border rounded-lg p-4">
+          <div className="text-2xl font-bold text-accent">4.8</div>
+          <div className="text-sm text-muted-foreground">Average Rating</div>
         </div>
       </div>
 
@@ -115,7 +115,7 @@ export default async function ComponentsPage() {
 
       {/* Load More */}
       <div className="flex justify-center mt-12">
-        <button className="px-6 py-3 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors">
+        <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
           Load More Components
         </button>
       </div>

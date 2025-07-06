@@ -58,7 +58,7 @@ export default async function DashboardPage() {
     <NavigationLayout user={user}>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Discover Components</h1>
-        <p className="text-gray-400">
+        <p className="text-muted-foreground">
           Browse our collection of Material 3 Jetpack Compose components
         </p>
       </div>
@@ -67,7 +67,7 @@ export default async function DashboardPage() {
 
       {/* Load More */}
       <div className="flex justify-center mt-12">
-        <button className="px-6 py-3 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors">
+        <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
           Load More Components
         </button>
       </div>
@@ -75,9 +75,9 @@ export default async function DashboardPage() {
       {/* Floating Action Button */}
       <Link 
         href="/components/new"
-        className="fixed bottom-8 right-8 w-14 h-14 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center shadow-lg transition-colors"
+        className="fixed bottom-8 right-8 w-14 h-14 bg-primary hover:bg-primary/90 rounded-full flex items-center justify-center shadow-lg transition-colors"
       >
-        <Plus className="h-6 w-6 text-white" />
+        <Plus className="h-6 w-6 text-primary-foreground" />
       </Link>
     </NavigationLayout>
   )
