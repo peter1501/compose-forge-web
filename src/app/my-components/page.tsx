@@ -14,7 +14,13 @@ export default async function MyComponentsPage() {
     redirect('/login')
   }
 
-  const components = await getUserComposeComponents(user.id)
+  let components = []
+  try {
+    components = await getUserComposeComponents(user.id)
+  } catch (error) {
+    console.error('Error loading user components:', error)
+    // Fallback to empty array if database tables don't exist yet
+  }
 
   return (
     <div className="container py-8">

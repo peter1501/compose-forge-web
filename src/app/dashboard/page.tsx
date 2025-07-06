@@ -16,7 +16,14 @@ export default async function DashboardPage() {
   }
 
   // Get recent components for the dashboard
-  const { components } = await listComposeComponents({ limit: 8 })
+  let components = []
+  try {
+    const result = await listComposeComponents({ limit: 8 })
+    components = result.components
+  } catch (error) {
+    console.error('Error loading components:', error)
+    // Fallback to empty array if database view doesn't exist yet
+  }
 
   return (
     <NavigationLayout user={user}>
@@ -33,6 +40,9 @@ export default async function DashboardPage() {
           <div className="text-center py-12 bg-muted/50 rounded-lg">
             <p className="text-muted-foreground mb-4">
               No components available yet. Be the first to create one!
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Note: If you just set up the project, make sure to run the database migration.
             </p>
             <Link href="/components/new">
               <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
