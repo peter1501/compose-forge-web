@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
-import { NavigationLayout } from '@/components/navigation-layout'
-import { ComponentGrid } from '@/components/component-grid'
+import { NavigationLayout } from '@/presentation/components/navigation-layout'
+import { ComponentGrid } from '@/presentation/components/component-grid'
 
 export default async function ComponentsPage() {
   const supabase = await createClient()
