@@ -3,15 +3,15 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
-import { Button } from '@/presentation/components/ui/button'
-import { Input } from '@/presentation/components/ui/input'
-import { Label } from '@/presentation/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/presentation/components/ui/card'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function SignupPage() {
   const router = useRouter()
-  const supabase = createClient()
+  const { signUp } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -32,26 +32,13 @@ export default function SignupPage() {
       return
     }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-
-    if (error) {
-      setError(error.message)
+    try {
+      await signUp(email, password)
+      // If no error, signup was successful
+      setSuccess(true)
+    } catch (error) {
+      setError((error as Error).message)
       setLoading(false)
-    } else {
-      // Check if user is already confirmed (email verification disabled)
-      if (data.user && data.session) {
-        // User is automatically confirmed, redirect to dashboard
-        router.push('/dashboard')
-      } else {
-        // Email verification is required
-        setSuccess(true)
-      }
     }
   }
 

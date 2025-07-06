@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { Button } from '@/presentation/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/presentation/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function AuthCodeErrorPage() {
   return (

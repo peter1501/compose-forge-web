@@ -21,19 +21,13 @@
         "./src/*"
       ],
       "@/components/*": [
-        "./src/presentation/components/*"
+        "./src/components/*"
       ],
-      "@/domain/*": [
-        "./src/domain/*"
+      "@/lib/*": [
+        "./src/lib/*"
       ],
-      "@/application/*": [
-        "./src/application/*"
-      ],
-      "@/infrastructure/*": [
-        "./src/infrastructure/*"
-      ],
-      "@/presentation/*": [
-        "./src/presentation/*"
+      "@/hooks/*": [
+        "./src/hooks/*"
       ]
     },
     "target": "ES2017",
