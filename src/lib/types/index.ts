@@ -1,6 +1,8 @@
 // Re-export common types used across the app
-export type { ComposeComponent, SearchOptions } from '@/lib/services/compose-components'
 export type { User } from '@supabase/supabase-js'
+
+// Re-export compose component types
+export * from './compose-component'
 
 // Additional app-specific types
 export interface Profile {
@@ -26,15 +28,5 @@ export interface Library {
   createdAt: string
   updatedAt: string
 }
-
-export type ComposeComponentCategory = 
-  | 'buttons'
-  | 'inputs'
-  | 'navigation'
-  | 'layout'
-  | 'feedback'
-  | 'data-display'
-  | 'surfaces'
-  | 'other'
 
 export type SubscriptionTier = 'free' | 'pro' | 'team'

@@ -1,149 +1,167 @@
-import { createClient } from '@/utils/supabase/server'
+'use client'
+
+import { useState, useEffect } from 'react'
 import { NavigationLayout } from '@/components/navigation-layout'
 import { ComposeComponentGrid } from '@/components/compose-component-grid'
-import { Package, Users, Download, Star } from 'lucide-react'
+import { Package, Users, Download, Heart, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import type { ComposeComponentWithStats, ComposeComponentCategory } from '@/lib/types'
 
-export default async function ComponentsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+const CATEGORIES: { value: ComposeComponentCategory | 'all'; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'most-downloaded', label: 'Most Downloaded' },
+  { value: 'most-bookmarked', label: 'Most Bookmarked' },
+  { value: 'trending', label: 'Trending' },
+  { value: 'recommended', label: 'Recommended' },
+]
 
-  // Sample data - replace with actual data from Supabase
-  const featuredComponents = [
-    {
-      id: '1',
-      title: 'Material 3 Button Collection',
-      description: 'Complete set of Material 3 buttons including filled, outlined, text, and elevated variants with proper theming.',
-      author: { name: 'Compose Forge Team' },
-      downloads: 5234,
-      stars: 423,
-      category: 'Buttons'
-    },
-    {
-      id: '2',
-      title: 'Adaptive Navigation Rail',
-      description: 'Responsive navigation rail that adapts between bottom bar, rail, and drawer based on screen size.',
-      author: { name: 'Alex Chen' },
-      downloads: 3876,
-      stars: 312,
-      category: 'Navigation'
-    },
-    {
-      id: '3',
-      title: 'Dynamic Theme Switcher',
-      description: 'Material You dynamic color theme switcher with smooth animations and persistent preferences.',
-      author: { name: 'Maria Garcia' },
-      downloads: 4521,
-      stars: 389,
-      category: 'Theming'
-    },
-    {
-      id: '4',
-      title: 'Animated Card Stack',
-      description: 'Swipeable card stack with spring physics animations, perfect for onboarding or content browsing.',
-      author: { name: 'David Kim' },
-      downloads: 2987,
-      stars: 267,
-      category: 'Cards'
-    },
-    {
-      id: '5',
-      title: 'Search Bar with Filters',
-      description: 'Material 3 search bar with animated filter chips and real-time search suggestions.',
-      author: { name: 'Sophie Turner' },
-      downloads: 3654,
-      stars: 298,
-      category: 'Input'
-    },
-    {
-      id: '6',
-      title: 'Bottom Sheet Templates',
-      description: 'Collection of bottom sheet components with different heights, drag gestures, and content layouts.',
-      author: { name: 'James Wilson' },
-      downloads: 4123,
-      stars: 356,
-      category: 'Sheets'
-    },
-    {
-      id: '7',
-      title: 'Data Table Component',
-      description: 'Feature-rich data table with sorting, filtering, pagination, and row selection capabilities.',
-      author: { name: 'Emma Brown' },
-      downloads: 2789,
-      stars: 234,
-      category: 'Tables'
-    },
-    {
-      id: '8',
-      title: 'Loading Animations',
-      description: 'Beautiful loading indicators including circular progress, skeleton screens, and shimmer effects.',
-      author: { name: 'Lucas Martinez' },
-      downloads: 5678,
-      stars: 445,
-      category: 'Progress'
+export default function ComponentsPage() {
+  const router = useRouter()
+  const [components, setComponents] = useState<ComposeComponentWithStats[]>([])
+  const [loading, setLoading] = useState(true)
+  const [category, setCategory] = useState<ComposeComponentCategory | 'all'>('all')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+
+  useEffect(() => {
+    loadComponents()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, page])
+
+  const loadComponents = async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '12'
+      })
+      
+      if (category !== 'all') {
+        params.append('category', category)
+      }
+      
+      const response = await fetch(`/api/compose-components?${params}`)
+      const data = await response.json()
+      
+      setComponents(data.components)
+      setTotalPages(data.totalPages)
+    } catch (error) {
+      console.error('Error loading components:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  const handleFavoriteToggle = async (componentId: string, isFavorited: boolean) => {
+    try {
+      const response = await fetch(`/api/compose-components/${componentId}/favorite`, {
+        method: isFavorited ? 'DELETE' : 'POST',
+      })
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push('/login')
+          return
+        }
+        throw new Error('Failed to toggle favorite')
+      }
+      
+      // Reload components to get updated favorite counts
+      loadComponents()
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+    }
+  }
 
   return (
-    <NavigationLayout user={user}>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Component Library</h1>
-        <p className="text-muted-foreground">
-          Production-ready Jetpack Compose components following Material 3 guidelines
-        </p>
+    <NavigationLayout>
+      <div className="mb-8 flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Component Library</h1>
+          <p className="text-muted-foreground">
+            Production-ready Jetpack Compose components following Material 3 guidelines
+          </p>
+        </div>
+        <Link href="/components/new">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Component
+          </Button>
+        </Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="relative overflow-hidden bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all duration-300 group">
-          <div className="absolute inset-0 bg-gradient-to-br from-chart-1/10 to-transparent" />
-          <div className="absolute top-4 right-4 p-2 rounded-lg bg-chart-1/10 group-hover:bg-chart-1/20 transition-colors">
-            <Package className="h-5 w-5 text-chart-1" />
-          </div>
-          <div className="relative">
-            <div className="text-3xl font-bold text-chart-1 mb-1">1,234</div>
-            <div className="text-sm text-muted-foreground font-medium">Total Components</div>
-          </div>
-        </div>
-        <div className="relative overflow-hidden bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all duration-300 group">
-          <div className="absolute inset-0 bg-gradient-to-br from-chart-2/10 to-transparent" />
-          <div className="absolute top-4 right-4 p-2 rounded-lg bg-chart-2/10 group-hover:bg-chart-2/20 transition-colors">
-            <Users className="h-5 w-5 text-chart-2" />
-          </div>
-          <div className="relative">
-            <div className="text-3xl font-bold text-chart-2 mb-1">567</div>
-            <div className="text-sm text-muted-foreground font-medium">Active Creators</div>
-          </div>
-        </div>
-        <div className="relative overflow-hidden bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all duration-300 group">
-          <div className="absolute inset-0 bg-gradient-to-br from-chart-3/10 to-transparent" />
-          <div className="absolute top-4 right-4 p-2 rounded-lg bg-chart-3/10 group-hover:bg-chart-3/20 transition-colors">
-            <Download className="h-5 w-5 text-chart-3" />
-          </div>
-          <div className="relative">
-            <div className="text-3xl font-bold text-chart-3 mb-1">89K</div>
-            <div className="text-sm text-muted-foreground font-medium">Downloads</div>
-          </div>
-        </div>
-        <div className="relative overflow-hidden bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all duration-300 group">
-          <div className="absolute inset-0 bg-gradient-to-br from-chart-4/10 to-transparent" />
-          <div className="absolute top-4 right-4 p-2 rounded-lg bg-chart-4/10 group-hover:bg-chart-4/20 transition-colors">
-            <Star className="h-5 w-5 text-chart-4" />
-          </div>
-          <div className="relative">
-            <div className="text-3xl font-bold text-chart-4 mb-1">4.8</div>
-            <div className="text-sm text-muted-foreground font-medium">Average Rating</div>
-          </div>
-        </div>
+      {/* Category Tabs */}
+      <div className="flex flex-wrap gap-2 mb-8">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.value}
+            onClick={() => {
+              setCategory(cat.value)
+              setPage(1)
+            }}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              category === cat.value
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted hover:bg-muted/80 text-foreground'
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
       </div>
 
-      <ComposeComponentGrid components={featuredComponents} />
+      {/* Components Grid */}
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      ) : components.length === 0 ? (
+        <div className="text-center py-12">
+          <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground mb-4">
+            No components found in this category.
+          </p>
+          <Link href="/components/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Create the First One
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        <>
+          <ComposeComponentGrid 
+            components={components}
+            onFavoriteToggled={handleFavoriteToggle}
+          />
 
-      {/* Load More */}
-      <div className="flex justify-center mt-12">
-        <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
-          Load More Components
-        </button>
-      </div>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-2 mt-8">
+              <Button
+                variant="outline"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Previous
+              </Button>
+              <span className="flex items-center px-4 text-sm">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          )}
+        </>
+      )}
     </NavigationLayout>
   )
 }

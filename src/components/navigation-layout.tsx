@@ -105,6 +105,9 @@ export const NavigationLayout: React.FC<NavigationLayoutProps> = ({ className, c
                       <Link href="/dashboard" className="block px-4 py-2 text-sm hover:bg-muted transition-colors">
                         Dashboard
                       </Link>
+                      <Link href="/my-components" className="block px-4 py-2 text-sm hover:bg-muted transition-colors">
+                        My Compose Components
+                      </Link>
                       <Link href="/profile" className="block px-4 py-2 text-sm hover:bg-muted transition-colors">
                         Profile
                       </Link>

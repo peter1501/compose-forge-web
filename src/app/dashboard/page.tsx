@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { NavigationLayout } from '@/components/navigation-layout'
+import { listComposeComponents } from '@/lib/services/compose-components'
 import { ComposeComponentGrid } from '@/components/compose-component-grid'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
@@ -14,62 +15,34 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Sample data - replace with actual data from Supabase
-  const sampleComponents = [
-    {
-      id: '1',
-      title: 'Modern Button Component',
-      description: 'A sleek, customizable button with hover effects and multiple variants for Material 3.',
-      author: { name: 'John Doe' },
-      downloads: 2456,
-      stars: 189,
-      category: 'Buttons'
-    },
-    {
-      id: '2',
-      title: 'Dashboard Template',
-      description: 'Complete dashboard layout with sidebar navigation and responsive Material 3 design.',
-      author: { name: 'Jane Smith' },
-      downloads: 1823,
-      stars: 234,
-      category: 'Templates'
-    },
-    {
-      id: '3',
-      title: 'Card Collection',
-      description: 'Beautiful card components with various layouts and smooth animations.',
-      author: { name: 'Mike Johnson' },
-      downloads: 3201,
-      stars: 412,
-      category: 'Cards'
-    },
-    {
-      id: '4',
-      title: 'Navigation Drawer',
-      description: 'Material 3 navigation drawer with gesture support and customizable items.',
-      author: { name: 'Sarah Wilson' },
-      downloads: 1567,
-      stars: 178,
-      category: 'Navigation'
-    }
-  ]
+  // Get recent components for the dashboard
+  const { components } = await listComposeComponents({ limit: 8 })
 
   return (
     <NavigationLayout user={user}>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Discover Components</h1>
+        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
         <p className="text-muted-foreground">
-          Browse our collection of Material 3 Jetpack Compose components
+          Welcome back! Here are the latest Jetpack Compose components.
         </p>
       </div>
 
-      <ComposeComponentGrid components={sampleComponents} />
-
-      {/* Load More */}
-      <div className="flex justify-center mt-12">
-        <button className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
-          Load More Components
-        </button>
+      <div className="mb-6">
+        <h2 className="text-2xl font-semibold mb-4">Recent Components</h2>
+        {components.length === 0 ? (
+          <div className="text-center py-12 bg-muted/50 rounded-lg">
+            <p className="text-muted-foreground mb-4">
+              No components available yet. Be the first to create one!
+            </p>
+            <Link href="/components/new">
+              <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
+                Create Component
+              </button>
+            </Link>
+          </div>
+        ) : (
+          <ComposeComponentGrid components={components} />
+        )}
       </div>
 
       {/* Floating Action Button */}
