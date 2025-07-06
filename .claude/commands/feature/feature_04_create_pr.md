@@ -9,7 +9,7 @@ role: Senior Engineer, Tech Lead, Security Specialist
 I'll execute the complete pull request workflow from creation through review to feedback resolution.
 
 ### IMPORTANT ###
-ALWAYS base PRs off dev and merge back into dev. main is for release only!!!
+All PRs should be based off and merged into the main branch.
 
 ## Phase 1: PR Creation (Senior Engineer with Tech Lead review)
 
@@ -18,7 +18,7 @@ ALWAYS base PRs off dev and merge back into dev. main is for release only!!!
 - Linting/formatting complete
 - Type checking passes
 - Coverage requirements met
-- Branch up-to-date with dev
+- Branch up-to-date with main
 
 ### PR Preparation
 - Review all changes
@@ -70,7 +70,7 @@ ALWAYS base PRs off dev and merge back into dev. main is for release only!!!
 - PR scope appropriate
 - Related to approved work
 - Branch naming correct
-- Target branch appropriate (ALWAYS target `dev` unless explicitely requested to target another branch)
+- Target branch appropriate (typically `main` unless explicitly requested otherwise)
 - Conflicts resolved
 
 ### Code Review (Senior Engineer)

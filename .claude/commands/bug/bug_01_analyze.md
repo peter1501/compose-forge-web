@@ -14,7 +14,7 @@ I'll help you perform comprehensive bug analysis, root cause investigation, and 
    - Reproduce the issue consistently
    - Document exact steps to reproduce
    - Capture error logs, screenshots, and stack traces
-   - Identify affected environments (dev, staging, prod)
+   - Identify affected environments
    - Determine user impact and severity level
 
 2. **Root Cause Investigation** (Senior Engineer)
@@ -75,7 +75,7 @@ I'll help you perform comprehensive bug analysis, root cause investigation, and 
   - [ ] Browser/device information recorded
 
 - [ ] **Environment Analysis**
-  - [ ] Check all environments (dev, staging, prod)
+  - [ ] Check all environments
   - [ ] Review recent deployments
   - [ ] Check environment-specific configurations
   - [ ] Validate AWS Amplify backend status

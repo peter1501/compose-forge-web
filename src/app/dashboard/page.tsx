@@ -1,7 +1,8 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { NavigationLayout } from '@/components/navigation-layout'
-import { ComponentGrid } from '@/components/component-grid'
+import { listComposeComponents } from '@/lib/services/compose-components'
+import { ComposeComponentGrid } from '@/components/compose-component-grid'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
@@ -14,70 +15,52 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Sample data - replace with actual data from Supabase
-  const sampleComponents = [
-    {
-      id: '1',
-      title: 'Modern Button Component',
-      description: 'A sleek, customizable button with hover effects and multiple variants for Material 3.',
-      author: { name: 'John Doe' },
-      downloads: 2456,
-      stars: 189,
-      category: 'Buttons'
-    },
-    {
-      id: '2',
-      title: 'Dashboard Template',
-      description: 'Complete dashboard layout with sidebar navigation and responsive Material 3 design.',
-      author: { name: 'Jane Smith' },
-      downloads: 1823,
-      stars: 234,
-      category: 'Templates'
-    },
-    {
-      id: '3',
-      title: 'Card Collection',
-      description: 'Beautiful card components with various layouts and smooth animations.',
-      author: { name: 'Mike Johnson' },
-      downloads: 3201,
-      stars: 412,
-      category: 'Cards'
-    },
-    {
-      id: '4',
-      title: 'Navigation Drawer',
-      description: 'Material 3 navigation drawer with gesture support and customizable items.',
-      author: { name: 'Sarah Wilson' },
-      downloads: 1567,
-      stars: 178,
-      category: 'Navigation'
-    }
-  ]
+  // Get recent components for the dashboard
+  let components = []
+  try {
+    const result = await listComposeComponents({ limit: 8 }, supabase)
+    components = result.components
+  } catch (error) {
+    console.error('Error loading components:', error)
+    // Fallback to empty array if database view doesn't exist yet
+  }
 
   return (
     <NavigationLayout user={user}>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Discover Components</h1>
-        <p className="text-gray-400">
-          Browse our collection of Material 3 Jetpack Compose components
+        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome back! Here are the latest Jetpack Compose components.
         </p>
       </div>
 
-      <ComponentGrid components={sampleComponents} />
-
-      {/* Load More */}
-      <div className="flex justify-center mt-12">
-        <button className="px-6 py-3 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-colors">
-          Load More Components
-        </button>
+      <div className="mb-6">
+        <h2 className="text-2xl font-semibold mb-4">Recent Components</h2>
+        {components.length === 0 ? (
+          <div className="text-center py-12 bg-muted/50 rounded-lg">
+            <p className="text-muted-foreground mb-4">
+              No components available yet. Be the first to create one!
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Note: If you just set up the project, make sure to run the database migration.
+            </p>
+            <Link href="/components/new">
+              <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
+                Create Component
+              </button>
+            </Link>
+          </div>
+        ) : (
+          <ComposeComponentGrid components={components} />
+        )}
       </div>
 
       {/* Floating Action Button */}
       <Link 
         href="/components/new"
-        className="fixed bottom-8 right-8 w-14 h-14 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center shadow-lg transition-colors"
+        className="fixed bottom-8 right-8 w-14 h-14 bg-primary hover:bg-primary/90 rounded-full flex items-center justify-center shadow-lg transition-colors"
       >
-        <Plus className="h-6 w-6 text-white" />
+        <Plus className="h-6 w-6 text-primary-foreground" />
       </Link>
     </NavigationLayout>
   )

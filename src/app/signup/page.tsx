@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 export default function SignupPage() {
   const router = useRouter()
-  const supabase = createClient()
+  const { signUp } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -32,32 +32,19 @@ export default function SignupPage() {
       return
     }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-
-    if (error) {
-      setError(error.message)
+    try {
+      await signUp(email, password)
+      // If no error, signup was successful
+      setSuccess(true)
+    } catch (error) {
+      setError((error as Error).message)
       setLoading(false)
-    } else {
-      // Check if user is already confirmed (email verification disabled)
-      if (data.user && data.session) {
-        // User is automatically confirmed, redirect to dashboard
-        router.push('/dashboard')
-      } else {
-        // Email verification is required
-        setSuccess(true)
-      }
     }
   }
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="flex min-h-screen items-center justify-center px-4 bg-background">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-center">
@@ -126,7 +113,7 @@ export default function SignupPage() {
               />
             </div>
             {error && (
-              <div className="text-sm text-red-500">
+              <div className="text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -139,11 +126,11 @@ export default function SignupPage() {
             >
               {loading ? 'Creating account...' : 'Sign up'}
             </Button>
-            <p className="text-sm text-center text-slate-600">
+            <p className="text-sm text-center text-muted-foreground">
               Already have an account?{' '}
               <Link
                 href="/login"
-                className="font-medium text-slate-900 hover:underline"
+                className="font-medium text-primary hover:underline"
               >
                 Sign in
               </Link>

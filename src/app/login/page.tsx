@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 export default function LoginPage() {
   const router = useRouter()
-  const supabase = createClient()
+  const { signIn } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -24,21 +24,17 @@ export default function LoginPage() {
     const email = formData.get('email') as string
     const password = formData.get('password') as string
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-    } else {
+    try {
+      await signIn(email, password)
       router.push('/dashboard')
+    } catch (err) {
+      setError((err as Error).message)
+      setLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center px-4 bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
@@ -72,7 +68,7 @@ export default function LoginPage() {
               />
             </div>
             {error && (
-              <div className="text-sm text-red-500">
+              <div className="text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -85,11 +81,11 @@ export default function LoginPage() {
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </Button>
-            <p className="text-sm text-center text-slate-600">
+            <p className="text-sm text-center text-muted-foreground">
               Don&apos;t have an account?{' '}
               <Link
                 href="/signup"
-                className="font-medium text-slate-900 hover:underline"
+                className="font-medium text-primary hover:underline"
               >
                 Sign up
               </Link>

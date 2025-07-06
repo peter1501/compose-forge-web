@@ -4,63 +4,121 @@
 
 @layer base {
   :root {
+    /* Light theme - Material 3 inspired */
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --foreground: 224 71.4% 4.1%;
+    
+    /* Primary - Purple for ComposeForge brand */
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 20% 98%;
+    
+    /* Secondary - Teal accent */
+    --secondary: 173 80% 40%;
+    --secondary-foreground: 210 20% 98%;
+    
+    /* Muted colors for subtle elements */
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    
+    /* Accent for highlights */
+    --accent: 262.1 83.3% 57.8%;
+    --accent-foreground: 210 20% 98%;
+    
+    /* Destructive actions */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --destructive-foreground: 210 20% 98%;
+    
+    /* Card backgrounds */
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    
+    /* Form elements */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 262.1 83.3% 57.8%;
+    
+    /* Border radius */
     --radius: 0.5rem;
+    
+    /* Analytics card colors */
+    --chart-1: 262.1 83.3% 57.8%; /* Primary purple */
+    --chart-2: 173 80% 40%; /* Teal */
+    --chart-3: 47 100% 50%; /* Gold */
+    --chart-4: 25 95% 53%; /* Orange */
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+    /* Dark theme - OLED friendly */
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    
+    /* Primary - Lighter purple for dark mode */
+    --primary: 263.4 70% 50.4%;
+    --primary-foreground: 210 20% 98%;
+    
+    /* Secondary - Lighter teal for dark mode */
+    --secondary: 173 70% 50%;
+    --secondary-foreground: 224 71.4% 4.1%;
+    
+    /* Muted colors for subtle elements */
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    
+    /* Accent for highlights */
+    --accent: 263.4 70% 50.4%;
+    --accent-foreground: 210 20% 98%;
+    
+    /* Destructive actions */
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --destructive-foreground: 210 20% 98%;
+    
+    /* Card backgrounds */
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    
+    /* Popover */
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    
+    /* Form elements */
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 263.4 70% 50.4%;
+    
+    /* Analytics card colors - adjusted for dark mode */
+    --chart-1: 263.4 70% 50.4%; /* Lighter purple */
+    --chart-2: 173 70% 50%; /* Lighter teal */
+    --chart-3: 47 90% 54%; /* Warm gold */
+    --chart-4: 25 85% 57%; /* Warm orange */
   }
 }
 
 @layer base {
+  * {
+    @apply border-border;
+  }
+  
   body {
-    @apply bg-black text-white;
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Smooth theme transitions */
+  html {
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar with theme support */
 @layer utilities {
   /* Firefox */
   * {
     scrollbar-width: thin;
-    scrollbar-color: #4b5563 #1f2937;
+    scrollbar-color: theme('colors.muted.DEFAULT') theme('colors.background');
   }
 
   /* Chrome, Edge, Safari */
@@ -70,15 +128,14 @@
   }
 
   *::-webkit-scrollbar-track {
-    background: #1f2937;
+    @apply bg-background;
   }
 
   *::-webkit-scrollbar-thumb {
-    background-color: #4b5563;
-    border-radius: 4px;
+    @apply bg-muted rounded;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background-color: #6b7280;
+    @apply bg-muted-foreground;
   }
 }

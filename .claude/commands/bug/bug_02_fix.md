@@ -27,7 +27,7 @@ I'll implement the bug fix following our clean architecture principles, ensuring
 #### **Phase 1: Setup and Preparation**
 
 1. **Branch Creation** (Assigned Engineer)
-   - Create fix branch from `dev`
+   - Create fix branch from `main`
    - Use naming convention: `fix/<ticket-id>-<description>`
    - Set up remote tracking
 
@@ -90,7 +90,7 @@ I'll implement the bug fix following our clean architecture principles, ensuring
 ### Implementation Checklist:
 
 - [ ] **Setup**
-  - [ ] Fix branch created from `dev`
+  - [ ] Fix branch created from `main`
   - [ ] GitHub issue linked
   - [ ] Local environment verified
   - [ ] Bug reproduced locally
@@ -197,8 +197,8 @@ const fetchWithRetry = async (operation: () => Promise<any>, retries = 3) => {
 
 ```bash
 # Create fix branch
-git checkout dev
-git pull origin dev
+git checkout main
+git pull origin main
 git checkout -b fix/<ticket-id>-<description>
 git push -u origin fix/<ticket-id>-<description>
 

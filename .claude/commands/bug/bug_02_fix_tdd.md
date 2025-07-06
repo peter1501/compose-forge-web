@@ -36,7 +36,7 @@ The Red-Green-Refactor cycle adapted for bug fixing:
 #### **Phase 1: Test Setup and Bug Reproduction**
 
 1. **Environment Preparation** (Senior Engineer)
-   - Create fix branch from `dev`
+   - Create fix branch from `main`
    - Set up testing environment
    - Ensure all existing tests pass
    - Verify local bug reproduction
@@ -250,8 +250,8 @@ describe('ClientForm Bug Fix', () => {
 
 ```bash
 # Create fix branch
-git checkout dev
-git pull origin dev
+git checkout main
+git pull origin main
 git checkout -b fix/<ticket-id>-<description>-tdd
 git push -u origin fix/<ticket-id>-<description>-tdd
 
