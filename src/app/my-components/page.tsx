@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { getUserComposeComponents } from '@/lib/services/compose-components'
-import { ComposeComponentGrid } from '@/components/compose-component-grid'
+import { ComposeComponentGrid } from '@/components/compose-components/component-grid'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'

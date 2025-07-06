@@ -1,17 +1,39 @@
+/**
+ * ComposePreview - Component Detail View
+ * 
+ * Purpose: Displays a complete view of an existing Compose component.
+ * This is the main component used on component detail pages to show:
+ * - Live interactive preview of the component
+ * - Read-only code viewer with syntax highlighting
+ * - Copy code to clipboard functionality
+ * - Download code as .kt file functionality
+ * 
+ * Used in:
+ * - Component detail pages (/components/[id])
+ * - Currently wrapped by ComponentDetailClient (to be removed)
+ * 
+ * Layout:
+ * - Top card: Live preview (auto-compiles on mount)
+ * - Bottom card: Read-only code with copy/download buttons
+ * 
+ * Note: This component is for viewing existing components only.
+ * For creating new components, see ComposeComponentForm.
+ */
 'use client'
 
 import { useState } from 'react'
+import { KotlinComposeEditor } from './kotlin-playground/kotlin-compose-editor'
+import { KotlinComposePreview } from './kotlin-playground/kotlin-compose-preview'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Download, Heart, Copy } from 'lucide-react'
-import Editor from '@monaco-editor/react'
+import { Copy, Download } from 'lucide-react'
 import type { ComposeComponentWithStats } from '@/lib/types'
 
-interface ComponentDetailClientProps {
+interface ComponentDetailViewProps {
   component: ComposeComponentWithStats
 }
 
-export function ComponentDetailClient({ component }: ComponentDetailClientProps) {
+export function ComponentDetailView({ component }: ComponentDetailViewProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
@@ -33,8 +55,24 @@ export function ComponentDetailClient({ component }: ComponentDetailClientProps)
   }
 
   return (
-    <>
-      {/* Code Preview */}
+    <div className="space-y-6">
+      {/* Preview Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Component Preview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="border rounded-md overflow-hidden">
+            <KotlinComposePreview
+              code={component.code}
+              height="400px"
+              showLoadingState={true}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Code Card */}
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -61,25 +99,16 @@ export function ComponentDetailClient({ component }: ComponentDetailClientProps)
         </CardHeader>
         <CardContent>
           <div className="border rounded-md overflow-hidden">
-            <Editor
+            <KotlinComposeEditor
+              code={component.code}
               height="500px"
-              defaultLanguage="kotlin"
-              value={component.code}
-              theme="vs-dark"
-              options={{
-                readOnly: true,
-                minimap: { enabled: true },
-                fontSize: 14,
-                lineNumbers: 'on',
-                scrollBeyondLastLine: false,
-                wordWrap: 'on',
-                automaticLayout: true
-              }}
+              theme="darcula"
+              readOnly={true}
+              autoRun={false}
             />
           </div>
         </CardContent>
       </Card>
-
-    </>
+    </div>
   )
 }
