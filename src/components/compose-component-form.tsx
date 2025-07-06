@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Editor from '@monaco-editor/react'
+import { KotlinComposeEditor } from '@/components/kotlin-playground/kotlin-compose-editor'
+import { KotlinComposePreview } from '@/components/kotlin-playground/kotlin-compose-preview'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, Save } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Loader2, Save, Play, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { 
   COMPOSE_COMPONENT_CATEGORIES, 
   MAX_CODE_SIZE,
@@ -16,28 +18,67 @@ import {
   type ComposeComponentFormData 
 } from '@/lib/types'
 
-const DEFAULT_CODE = `package com.example.composeforge
-
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+const DEFAULT_CODE = `import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.window.CanvasBasedWindow
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 
-@Composable
-fun MyComponent(
-    modifier: Modifier = Modifier
-) {
-    // Your Compose code here
-    Text(
-        text = "Hello, ComposeForge!",
-        modifier = modifier
-    )
+@OptIn(ExperimentalComposeUiApi::class)
+fun main() {
+  CanvasBasedWindow { App() }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun MyComponentPreview() {
-    MyComponent()
+fun App() {
+  MaterialTheme {
+    var greetingText by remember { mutableStateOf("Hello World!") }
+    var showImage by remember { mutableStateOf(false) }
+    var counter by remember { mutableStateOf(0) }
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+      Button(onClick = {
+        counter++
+        greetingText = "Compose: \${Greeting().greet()}"
+        showImage = !showImage
+      }) {
+        Text(greetingText)
+      }
+      AnimatedVisibility(showImage) {
+        Text(counter.toString())
+      }
+    }
+  }
+}
+
+private val platform = object : Platform {
+
+  override val name: String
+    get() = "Web with Kotlin/Wasm"
+}
+
+fun getPlatform(): Platform = platform
+
+class Greeting {
+  private val platform = getPlatform()
+
+  fun greet(): String {
+    return "Hello, \${platform.name}!"
+  }
+}
+
+interface Platform {
+  val name: String
 }`
 
 interface ComposeComponentFormProps {
@@ -52,8 +93,13 @@ export function ComposeComponentForm({
   submitLabel = 'Create Component'
 }: ComposeComponentFormProps) {
   const router = useRouter()
+  const previewRef = useRef<HTMLDivElement>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [compilationState, setCompilationState] = useState<'idle' | 'compiling' | 'success' | 'error'>('idle')
+  const [compilationError, setCompilationError] = useState<string | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
+  const [isPreviewReady, setIsPreviewReady] = useState(false)
   
   const [formData, setFormData] = useState<ComposeComponentFormData>({
     name: initialData?.name || '',
@@ -63,6 +109,67 @@ export function ComposeComponentForm({
     min_sdk_version: initialData?.min_sdk_version || DEFAULT_MIN_SDK_VERSION,
     compose_version: initialData?.compose_version || DEFAULT_COMPOSE_VERSION
   })
+
+  const handleCodeChange = (newCode: string) => {
+    setFormData({ ...formData, code: newCode })
+    // Reset compilation state when code changes after successful compilation
+    if (compilationState === 'success' || isPreviewReady) {
+      setCompilationState('idle')
+      setShowPreview(false)
+      setIsPreviewReady(false)
+    }
+  }
+
+  const handleCompile = () => {
+    setCompilationState('compiling')
+    setCompilationError(null)
+    setShowPreview(true)
+    setIsPreviewReady(false)
+  }
+
+  const handleCompilationStart = () => {
+    // Compilation state already set in handleCompile
+    setIsPreviewReady(false)
+  }
+
+  const handleCompilationEnd = (success: boolean) => {
+    if (success) {
+      setCompilationState('success')
+      setCompilationError(null)
+      // Mark preview as ready when compilation succeeds
+      setIsPreviewReady(true)
+    } else {
+      setCompilationState('error')
+      setCompilationError('Compilation failed. Check your code for errors.')
+      setIsPreviewReady(false)
+      // Don't hide preview so user can see the error output
+    }
+  }
+
+  const capturePreviewScreenshot = async (): Promise<Blob | null> => {
+    if (!previewRef.current) return null
+    
+    try {
+      // Find the iframe inside the preview container
+      const iframe = previewRef.current.querySelector('.k2js-iframe') as HTMLIFrameElement
+      if (!iframe) return null
+      
+      // Get the canvas element from inside the iframe
+      const iframeDoc = iframe.contentDocument
+      const canvas = iframeDoc?.querySelector('canvas#ComposeTarget') as HTMLCanvasElement
+      if (!canvas) return null
+      
+      // Convert canvas to blob
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+          resolve(blob)
+        }, 'image/png')
+      })
+    } catch (error) {
+      console.error('Failed to capture preview screenshot:', error)
+      return null
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,7 +189,14 @@ export function ComposeComponentForm({
     
     setIsSubmitting(true)
     try {
-      await onSubmit(formData)
+      // Capture screenshot before submission
+      const screenshot = await capturePreviewScreenshot()
+      
+      // Pass both form data and screenshot to onSubmit
+      await onSubmit({
+        ...formData,
+        screenshot
+      } as any) // TODO: Update type definition to include screenshot
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save component')
     } finally {
@@ -96,7 +210,7 @@ export function ComposeComponentForm({
         <CardHeader>
           <CardTitle>Component Details</CardTitle>
           <CardDescription>
-            Basic information about your Jetpack Compose component
+            Basic information about your Compose Multiplatform component
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -171,34 +285,77 @@ export function ComposeComponentForm({
         <CardHeader>
           <CardTitle>Component Code *</CardTitle>
           <CardDescription>
-            Write your complete Jetpack Compose component code including package declaration and imports
+            Write your Compose Multiplatform component code
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-md overflow-hidden">
-            <Editor
-              height="400px"
-              defaultLanguage="kotlin"
-              value={formData.code}
-              onChange={(value) => setFormData({ ...formData, code: value || '' })}
-              theme="vs-dark"
-              options={{
-                minimap: { enabled: true },
-                fontSize: 14,
-                lineNumbers: 'on',
-                scrollBeyondLastLine: false,
-                wordWrap: 'on',
-                formatOnPaste: true,
-                formatOnType: true,
-                automaticLayout: true
-              }}
-            />
+          <div className="space-y-4">
+            <div className="border rounded-md overflow-hidden">
+              <KotlinComposeEditor
+                code={formData.code}
+                height="400px"
+                theme="darcula"
+                outputHeight={0}
+                onCodeChange={handleCodeChange}
+                showRunButton={false}
+              />
+            </div>
+            
+            <p className="text-sm text-muted-foreground">
+              Code size: {(formData.code.length / 1024).toFixed(1)}KB / {MAX_CODE_SIZE / 1024}KB
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            Code size: {(formData.code.length / 1024).toFixed(1)}KB / {MAX_CODE_SIZE / 1024}KB
-          </p>
         </CardContent>
       </Card>
+
+      {/* Preview Card */}
+      <Card style={{ display: showPreview ? 'block' : 'none' }}>
+        <CardHeader>
+          <CardTitle>Component Preview</CardTitle>
+          <CardDescription>
+            Live preview of your component
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div ref={previewRef} className="border rounded-md overflow-hidden">
+            <KotlinComposePreview
+              code={formData.code}
+              height="400px"
+              onCompilationStart={handleCompilationStart}
+              onCompilationEnd={handleCompilationEnd}
+              showLoadingState={false}
+              autoCompile={showPreview}
+            />
+          </div>
+            
+            {/* Show loading state while compiling */}
+            {compilationState === 'compiling' && (
+              <div className="mt-4 flex items-center justify-center p-4 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                <span>Compiling component...</span>
+              </div>
+            )}
+            
+            {/* Compilation Status Messages */}
+            {compilationState === 'success' && isPreviewReady && (
+              <Alert className="mt-4 border-green-200 bg-green-50 dark:bg-green-950/20">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800 dark:text-green-200">
+                  Component compiled successfully! You can now create the component.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {compilationState === 'error' && (
+              <Alert variant="destructive" className="mt-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {compilationError || 'Compilation failed. Please fix the errors and try again.'}
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
 
       {error && (
         <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
@@ -207,23 +364,60 @@ export function ComposeComponentForm({
       )}
 
       <div className="flex gap-4">
-        <Button 
-          type="submit" 
-          disabled={isSubmitting}
-          className="flex-1"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              {submitLabel}
-            </>
-          )}
-        </Button>
+        {/* Only show create button when preview is ready and compilation succeeded */}
+        {compilationState === 'success' && isPreviewReady ? (
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="flex-1"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                {submitLabel}
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button 
+            type="button"
+            onClick={handleCompile}
+            disabled={compilationState === 'compiling' || (compilationState === 'success' && !isPreviewReady)}
+            className="flex-1"
+          >
+            {compilationState === 'compiling' || (compilationState === 'success' && !isPreviewReady) ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Compiling...
+              </>
+            ) : (
+              <>
+                <Play className="mr-2 h-4 w-4" />
+                Compile Component
+              </>
+            )}
+          </Button>
+        )}
+        
+        {compilationState === 'error' && (
+          <Button 
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              setCompilationState('success')
+              setIsPreviewReady(true)
+            }}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            Create Anyway
+          </Button>
+        )}
+        
         <Button 
           type="button" 
           variant="outline"
