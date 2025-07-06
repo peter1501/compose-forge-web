@@ -14,7 +14,7 @@ export default async function MyComponentsPage() {
     redirect('/login')
   }
 
-  let components = []
+  let components: Awaited<ReturnType<typeof getUserComposeComponents>> = []
   try {
     components = await getUserComposeComponents(user.id)
   } catch (error) {
