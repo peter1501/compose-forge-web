@@ -56,7 +56,7 @@ I'll guide you through Test-Driven Development for your feature.
    - Review coding standards
 
 2. **Branch Creation**
-   - Create feature branch from dev
+   - Create feature branch from main
    - Follow naming convention: `feature/<ticket-id>-<description>`
    - Set up tracking with remote
 
@@ -79,7 +79,7 @@ I'll guide you through Test-Driven Development for your feature.
    - Ensure coverage requirements met
 
 ### Checklist:
-- [ ] Branch created from dev
+- [ ] Branch created from main
 - [ ] Code follows patterns
 - [ ] Tests written and passing
 - [ ] Linting passes

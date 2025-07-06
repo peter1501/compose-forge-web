@@ -9,7 +9,7 @@ role: Tech Lead, Senior Engineer, DevOps Engineer
 I'll manage the final merge process for approved bug fix pull requests, ensuring proper deployment and post-merge validation while maintaining our clean architecture and healthcare compliance standards.
 
 ### IMPORTANT ###
-ALWAYS base PRs off dev and merge back into dev. main is for release only!!!
+All PRs should be based off and merged into the main branch.
 
 ### Pre-Merge Validation:
 
@@ -26,7 +26,7 @@ ALWAYS base PRs off dev and merge back into dev. main is for release only!!!
    - No new security warnings
 
 3. **Deployment Readiness** (DevOps Engineer)
-   - Target branch (`dev`) is stable
+   - Target branch (`main`) is stable
    - Deployment pipeline ready
    - Rollback plan confirmed
    - Monitoring systems prepared
@@ -50,7 +50,7 @@ ALWAYS base PRs off dev and merge back into dev. main is for release only!!!
 #### **Phase 2: Merge Execution**
 
 1. **Branch Synchronization** (Senior Engineer)
-   - Ensure fix branch is up-to-date with `dev`
+   - Ensure fix branch is up-to-date with `main`
    - Resolve any conflicts if present
    - Verify tests still pass after sync
    - Final commit message preparation
@@ -98,7 +98,7 @@ ALWAYS base PRs off dev and merge back into dev. main is for release only!!!
 
 #### **Merge Process Requirements**
 - [ ] **Branch Management**
-  - [ ] Fix branch synchronized with `dev`
+  - [ ] Fix branch synchronized with `main`
   - [ ] No merge conflicts
   - [ ] All commits properly formatted
   - [ ] Commit messages follow convention
@@ -117,7 +117,7 @@ ALWAYS base PRs off dev and merge back into dev. main is for release only!!!
 gh pr merge <pr-number> --squash --delete-branch
 
 # Alternative manual squash
-git checkout dev
+git checkout main
 git merge --squash fix/<ticket-id>-<description>
 git commit -m "fix: [comprehensive bug fix description]
 
@@ -133,7 +133,7 @@ Fixes #<issue-number>
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 
-git push origin dev
+git push origin main
 git branch -D fix/<ticket-id>-<description>
 ```
 
@@ -143,9 +143,9 @@ git branch -D fix/<ticket-id>-<description>
 gh pr merge <pr-number> --merge --delete-branch
 
 # Or manual merge
-git checkout dev
+git checkout main
 git merge fix/<ticket-id>-<description>
-git push origin dev
+git push origin main
 git branch -D fix/<ticket-id>-<description>
 ```
 
@@ -223,10 +223,8 @@ git push origin main
 git tag -a emergency-fix-v$(date +%Y%m%d-%H%M%S) -m "Emergency fix for critical bug #<issue>"
 git push origin emergency-fix-v$(date +%Y%m%d-%H%M%S)
 
-# Cherry-pick to dev branch
-git checkout dev
-git cherry-pick <merge-commit-hash>
-git push origin dev
+# No need to cherry-pick since we're merging directly to main
+git push origin main
 ```
 
 #### **Emergency Deployment**
@@ -284,16 +282,13 @@ curl -f https://your-production-url/health-check
 #### **Rollback Execution**
 ```bash
 # Quick rollback using git
-git checkout dev
+git checkout main
 git revert <merge-commit-hash>
-git push origin dev
+git push origin main
 
 # Or rollback to previous release
 git reset --hard <previous-stable-commit>
-git push --force origin dev
-
-# Trigger emergency deployment
-npx amplify push --yes
+git push --force origin main
 ```
 
 ### Success Metrics:
@@ -325,8 +320,8 @@ gh pr merge <pr-number> --squash --delete-branch
 gh pr merge <pr-number> --merge --delete-branch
 
 # Post-merge validation
-git checkout dev
-git pull origin dev
+git checkout main
+git pull origin main
 npm run lint
 npm run type-check
 npm test

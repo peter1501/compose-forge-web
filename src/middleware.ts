@@ -28,7 +28,17 @@ export async function middleware(request: NextRequest) {
   )
 
   // This will refresh session if expired - required for Server Components
-  const { data: { user } } = await supabase.auth.getUser()
+  // IMPORTANT: Always call getUser() to refresh the session
+  const { data: { user }, error } = await supabase.auth.getUser()
+  
+  if (error) {
+    console.error('Middleware auth error:', error)
+  }
+
+  // Don't redirect on API routes, just pass through with refreshed session
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return supabaseResponse
+  }
 
   // Protected routes
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {

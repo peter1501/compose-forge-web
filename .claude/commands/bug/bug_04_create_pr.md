@@ -9,7 +9,7 @@ role: Senior Engineer, Tech Lead, Security Specialist
 I'll create a comprehensive pull request for the bug fix, manage the review process, and ensure all quality standards are met before merging.
 
 ### IMPORTANT ###
-ALWAYS base PRs off dev and merge back into dev. main is for release only!!!
+All PRs should be based off and merged into the main branch.
 
 ### Pre-PR Creation Checklist:
 
@@ -37,7 +37,7 @@ ALWAYS base PRs off dev and merge back into dev. main is for release only!!!
 
 1. **Final Validation** (Senior Engineer)
    - Ensure all commits are properly formatted
-   - Verify branch is up to date with `dev`
+   - Verify branch is up to date with `main`
    - Run complete test suite one final time
    - Confirm bug reproduction is resolved
 
@@ -51,7 +51,7 @@ ALWAYS base PRs off dev and merge back into dev. main is for release only!!!
 
 1. **GitHub PR Creation** (Senior Engineer)
    - Create PR with comprehensive description
-   - Target branch appropriate (ALWAYS target `dev` unless explicitely requested to target another branch)
+   - Target branch appropriate (typically `main` unless explicitly requested otherwise)
    - Link to original bug report issue
    - Add appropriate labels and reviewers
    - Set milestone if applicable
@@ -235,7 +235,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 # Pre-PR final checks
 git checkout fix/<ticket-id>-<description>
 git fetch origin
-git rebase origin/dev
+git rebase origin/main
 
 # Run complete validation
 npm run lint
@@ -359,11 +359,9 @@ For critical production bugs requiring immediate deployment:
    # After fix and testing
    gh pr create --base main --title "hotfix: [Critical Bug]"
    
-   # After approval, merge to main and cherry-pick to dev
+   # After approval, merge to main
    git checkout main
    git merge hotfix/<critical-bug>
-   git checkout dev
-   git cherry-pick <commit-hash>
    ```
 
 ### Next Steps:
