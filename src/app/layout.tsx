@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Hello World - Next.js",
-  description: "A simple Hello World Next.js application",
+  title: "ComposeForge - Jetpack Compose Components Marketplace",
+  description: "Discover, share, and generate high-quality Material 3 components for Jetpack Compose",
 };
 
 export default function RootLayout({

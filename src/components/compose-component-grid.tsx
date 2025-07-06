@@ -6,7 +6,7 @@ import { Download, Star, Code2, Eye } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
-interface ComponentCardProps {
+interface ComposeComponentCardProps {
   id: string
   title: string
   description: string
@@ -20,7 +20,7 @@ interface ComponentCardProps {
   preview?: string
 }
 
-export function ComponentCard({ component, index }: { component: ComponentCardProps; index: number }) {
+export function ComposeComponentCard({ component, index }: { component: ComposeComponentCardProps; index: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -93,15 +93,15 @@ export function ComponentCard({ component, index }: { component: ComponentCardPr
   )
 }
 
-interface ComponentGridProps {
-  components: ComponentCardProps[]
+interface ComposeComponentGridProps {
+  components: ComposeComponentCardProps[]
 }
 
-export function ComponentGrid({ components }: ComponentGridProps) {
+export function ComposeComponentGrid({ components }: ComposeComponentGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {components.map((component, index) => (
-        <ComponentCard key={component.id} component={component} index={index} />
+        <ComposeComponentCard key={component.id} component={component} index={index} />
       ))}
     </div>
   )

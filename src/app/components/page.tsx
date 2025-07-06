@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { NavigationLayout } from '@/components/navigation-layout'
-import { ComponentGrid } from '@/components/component-grid'
+import { ComposeComponentGrid } from '@/components/compose-component-grid'
 
 export default async function ComponentsPage() {
   const supabase = await createClient()
@@ -111,7 +111,7 @@ export default async function ComponentsPage() {
         </div>
       </div>
 
-      <ComponentGrid components={featuredComponents} />
+      <ComposeComponentGrid components={featuredComponents} />
 
       {/* Load More */}
       <div className="flex justify-center mt-12">

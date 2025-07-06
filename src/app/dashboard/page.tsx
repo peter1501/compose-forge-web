@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { NavigationLayout } from '@/components/navigation-layout'
-import { ComponentGrid } from '@/components/component-grid'
+import { ComposeComponentGrid } from '@/components/compose-component-grid'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
@@ -63,7 +63,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <ComponentGrid components={sampleComponents} />
+      <ComposeComponentGrid components={sampleComponents} />
 
       {/* Load More */}
       <div className="flex justify-center mt-12">
