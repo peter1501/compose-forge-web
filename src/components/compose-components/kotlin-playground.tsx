@@ -346,7 +346,7 @@ export function KotlinPlayground({
       }
       console.log('[KotlinPlayground] executeCode method attached to container')
     }
-  }, [isInitialized])
+  }, [isInitialized, code])
 
   // Cleanup on unmount
   useEffect(() => {

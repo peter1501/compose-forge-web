@@ -27,7 +27,7 @@ interface UseKotlinComposeReturn {
     onCompilationStart: () => void
     onCompilationEnd: (success: boolean) => void
   }
-  previewRef: React.RefObject<KotlinComposePreviewHandle>
+  previewRef: React.RefObject<KotlinComposePreviewHandle | null>
 }
 
 export function useKotlinCompose({
