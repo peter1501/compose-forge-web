@@ -43,20 +43,23 @@ export function useComponentStats(componentId: string): UseComponentStatsReturn 
       if (!response.ok) throw new Error('Failed to track view')
       
       // Update local stats optimistically
-      if (stats && !stats.isViewedByUser) {
-        setStats({
-          ...stats,
-          viewCount: stats.viewCount + 1,
-          isViewedByUser: true
-        })
-      }
+      setStats(prevStats => {
+        if (prevStats && !prevStats.isViewedByUser) {
+          return {
+            ...prevStats,
+            viewCount: prevStats.viewCount + 1,
+            isViewedByUser: true
+          }
+        }
+        return prevStats
+      })
       
       // Refresh to ensure consistency
       setTimeout(() => fetchStats(), 1000)
     } catch (err) {
       console.error('Error tracking view:', err)
     }
-  }, [componentId, user, stats, fetchStats])
+  }, [componentId, user, fetchStats])
 
   const trackDownload = useCallback(async () => {
     if (!user) return
@@ -68,20 +71,23 @@ export function useComponentStats(componentId: string): UseComponentStatsReturn 
       if (!response.ok) throw new Error('Failed to track download')
       
       // Update local stats optimistically
-      if (stats && !stats.isDownloadedByUser) {
-        setStats({
-          ...stats,
-          downloadCount: stats.downloadCount + 1,
-          isDownloadedByUser: true
-        })
-      }
+      setStats(prevStats => {
+        if (prevStats && !prevStats.isDownloadedByUser) {
+          return {
+            ...prevStats,
+            downloadCount: prevStats.downloadCount + 1,
+            isDownloadedByUser: true
+          }
+        }
+        return prevStats
+      })
       
       // Refresh to ensure consistency
       setTimeout(() => fetchStats(), 1000)
     } catch (err) {
       console.error('Error tracking download:', err)
     }
-  }, [componentId, user, stats, fetchStats])
+  }, [componentId, user, fetchStats])
 
   const toggleFavorite = useCallback(async () => {
     if (!user) return
@@ -95,15 +101,18 @@ export function useComponentStats(componentId: string): UseComponentStatsReturn 
       const { isFavorited } = await response.json()
       
       // Update local stats optimistically
-      if (stats) {
-        setStats({
-          ...stats,
-          favoriteCount: isFavorited 
-            ? stats.favoriteCount + 1 
-            : Math.max(0, stats.favoriteCount - 1),
-          isFavoritedByUser: isFavorited
-        })
-      }
+      setStats(prevStats => {
+        if (prevStats) {
+          return {
+            ...prevStats,
+            favoriteCount: isFavorited 
+              ? prevStats.favoriteCount + 1 
+              : Math.max(0, prevStats.favoriteCount - 1),
+            isFavoritedByUser: isFavorited
+          }
+        }
+        return prevStats
+      })
       
       // Refresh stats from server to ensure consistency
       setTimeout(() => fetchStats(), 500)
@@ -112,7 +121,7 @@ export function useComponentStats(componentId: string): UseComponentStatsReturn 
       // Refresh on error to restore correct state
       fetchStats()
     }
-  }, [componentId, user, stats, fetchStats])
+  }, [componentId, user, fetchStats])
 
   useEffect(() => {
     fetchStats()

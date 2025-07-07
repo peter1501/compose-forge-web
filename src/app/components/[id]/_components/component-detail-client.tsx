@@ -16,6 +16,7 @@ interface ComponentDetailClientProps {
 
 export function ComponentDetailClient({ component, user }: ComponentDetailClientProps) {
   const { stats, trackView, trackDownload, toggleFavorite } = useComponentStats(component.id)
+  const [viewTracked, setViewTracked] = useState(false)
   const [debugMode] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('debugStats') === 'true'
@@ -23,12 +24,13 @@ export function ComponentDetailClient({ component, user }: ComponentDetailClient
     return false
   })
 
-  // Track view on mount
+  // Track view on mount - only once per component load
   useEffect(() => {
-    if (user) {
+    if (user && !viewTracked) {
       trackView()
+      setViewTracked(true)
     }
-  }, [user, trackView])
+  }, [user, viewTracked, trackView])
 
   // Debug logging
   useEffect(() => {
