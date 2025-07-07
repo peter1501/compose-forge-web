@@ -34,6 +34,12 @@ All PRs should be based off and merged into the main branch.
 - Screenshots if UI changes
 - Breaking changes noted
 
+### PR Creation Method
+- **Preferred**: Use GitHub MCP server tool (mcp__github__create_pull_request) for programmatic PR creation
+- **Alternative**: Use gh CLI for command-line PR creation
+- Ensure proper branch targeting (typically `main`)
+- Include comprehensive PR body using template
+
 ### PR Content Structure
 ```markdown
 ## Summary
@@ -151,7 +157,17 @@ All PRs should be based off and merged into the main branch.
 
 ## Execution Options
 
-1. **Create PR**: Prepare and submit new pull request
+1. **Create PR**: Prepare and submit new pull request using GitHub MCP server
+   - Use mcp__github__create_pull_request with proper parameters
+   - owner: repository owner
+   - repo: repository name  
+   - title: descriptive PR title
+   - head: feature branch name
+   - base: target branch (typically "main")
+   - body: comprehensive description using template
+   - draft: false for ready PRs, true for WIP
+   - maintainer_can_modify: true
+
 2. **Review PR**: Comprehensive review of existing PR
 3. **Fix Feedback**: Address review comments and feedback
 4. **Full Workflow**: Execute all phases for complete PR lifecycle

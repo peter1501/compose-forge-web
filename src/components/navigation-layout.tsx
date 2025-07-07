@@ -17,6 +17,7 @@ interface NavigationLayoutProps {
 
 export const NavigationLayout: React.FC<NavigationLayoutProps> = ({ className, children, user }) => {
   const [searchQuery, setSearchQuery] = React.useState("")
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = React.useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -86,23 +87,41 @@ export const NavigationLayout: React.FC<NavigationLayoutProps> = ({ className, c
                     <Plus className="h-5 w-5" />
                   </Link>
                   <div className="relative group">
-                    <button className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors">
+                    <button 
+                      id="user-menu-button"
+                      className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors"
+                      aria-expanded={isProfileMenuOpen}
+                      aria-haspopup="true"
+                      onMouseEnter={() => setIsProfileMenuOpen(true)}
+                      onMouseLeave={() => setIsProfileMenuOpen(false)}
+                    >
                       <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
                         <User className="h-4 w-4 text-primary-foreground" />
                       </div>
                       <ChevronDown className="h-4 w-4" />
                     </button>
-                    <div className="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                      <Link href="/dashboard" className="block px-4 py-2 text-sm hover:bg-muted transition-colors">
+                    <div 
+                      className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all"
+                      role="menu"
+                      aria-orientation="vertical"
+                      aria-labelledby="user-menu-button"
+                    >
+                      <Link href="/dashboard" className="block px-4 py-2 text-sm hover:bg-muted transition-colors" role="menuitem">
                         Dashboard
                       </Link>
-                      <Link href="/my-components" className="block px-4 py-2 text-sm hover:bg-muted transition-colors">
+                      <Link href="/my-components" className="block px-4 py-2 text-sm hover:bg-muted transition-colors" role="menuitem">
                         My Compose Components
                       </Link>
-                      <Link href="/profile" className="block px-4 py-2 text-sm hover:bg-muted transition-colors">
+                      <Link href="/favorites" className="block px-4 py-2 text-sm hover:bg-muted transition-colors" role="menuitem">
+                        My Favorites
+                      </Link>
+                      <Link href="/dashboard/stats" className="block px-4 py-2 text-sm hover:bg-muted transition-colors" role="menuitem">
+                        Component Stats
+                      </Link>
+                      <Link href="/profile" className="block px-4 py-2 text-sm hover:bg-muted transition-colors" role="menuitem">
                         Profile
                       </Link>
-                      <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors">
+                      <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors" role="menuitem">
                         Sign out
                       </button>
                     </div>
