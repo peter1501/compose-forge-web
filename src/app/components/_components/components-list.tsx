@@ -65,9 +65,19 @@ export function ComponentsList({
       return
     }
     
-    // TODO: Implement server action for favorite toggle
-    console.log('Toggle favorite:', componentId, isFavorited)
-    router.refresh()
+    try {
+      const response = await fetch(`/api/components/${componentId}/favorite`, {
+        method: 'POST'
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to toggle favorite')
+      }
+      
+      router.refresh()
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+    }
   }
 
   return (

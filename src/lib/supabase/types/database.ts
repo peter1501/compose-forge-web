@@ -68,6 +68,29 @@ export interface Database {
           created_at?: string
         }
       }
+      component_interactions: {
+        Row: {
+          id: string
+          user_id: string
+          component_id: string
+          interaction_type: 'view' | 'download' | 'favorite'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          component_id: string
+          interaction_type: 'view' | 'download' | 'favorite'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          component_id?: string
+          interaction_type?: 'view' | 'download' | 'favorite'
+          created_at?: string
+        }
+      }
       profiles: {
         Row: {
           id: string
@@ -113,6 +136,16 @@ export interface Database {
           is_favorited: boolean
         }
       }
+      component_stats: {
+        Row: {
+          component_id: string
+          view_count: number
+          download_count: number
+          favorite_count: number
+          last_viewed_at: string | null
+          last_downloaded_at: string | null
+        }
+      }
     }
     Functions: {
       increment_component_downloads: {
@@ -126,6 +159,28 @@ export interface Database {
           component_id: string
         }
         Returns: void
+      }
+      track_component_interaction: {
+        Args: {
+          p_user_id: string
+          p_component_id: string
+          p_interaction_type: string
+        }
+        Returns: boolean
+      }
+      get_component_stats_for_user: {
+        Args: {
+          p_component_id: string
+          p_user_id?: string
+        }
+        Returns: {
+          view_count: number
+          download_count: number
+          favorite_count: number
+          is_viewed_by_user: boolean
+          is_downloaded_by_user: boolean
+          is_favorited_by_user: boolean
+        }[]
       }
     }
     Enums: {}
