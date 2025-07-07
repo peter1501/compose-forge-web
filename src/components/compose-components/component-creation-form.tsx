@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { KotlinComposeEditor } from '@/components/compose-components/kotlin-playground/kotlin-compose-editor'
 import { KotlinComposePreview } from '@/components/compose-components/kotlin-playground/kotlin-compose-preview'
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Save, Play, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { useKotlinCompose } from '@/hooks/useKotlinCompose'
 import { 
   COMPOSE_COMPONENT_CATEGORIES, 
   MAX_CODE_SIZE,
@@ -93,13 +94,26 @@ export function ComponentCreationForm({
   submitLabel = 'Create Component'
 }: ComposeComponentFormProps) {
   const router = useRouter()
-  const previewRef = useRef<HTMLDivElement>(null)
+  const previewContainerRef = useRef<HTMLDivElement>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [compilationState, setCompilationState] = useState<'idle' | 'compiling' | 'success' | 'error'>('idle')
   const [compilationError, setCompilationError] = useState<string | null>(null)
   const [showPreview, setShowPreview] = useState(false)
   const [isPreviewReady, setIsPreviewReady] = useState(false)
+  
+  // Use refs to track states for callbacks to avoid stale closures
+  const compilationStateRef = useRef(compilationState)
+  const isPreviewReadyRef = useRef(isPreviewReady)
+  
+  // Update refs when states change
+  useEffect(() => {
+    compilationStateRef.current = compilationState
+  }, [compilationState])
+  
+  useEffect(() => {
+    isPreviewReadyRef.current = isPreviewReady
+  }, [isPreviewReady])
   
   const [formData, setFormData] = useState<ComposeComponentFormData>({
     name: initialData?.name || '',
@@ -110,48 +124,69 @@ export function ComponentCreationForm({
     compose_version: initialData?.compose_version || DEFAULT_COMPOSE_VERSION
   })
 
-  const handleCodeChange = (newCode: string) => {
-    setFormData({ ...formData, code: newCode })
+  // Create stable callbacks that won't change
+  const handleCodeChange = useCallback((newCode: string) => {
+    setFormData(prev => ({ ...prev, code: newCode }))
     // Reset compilation state when code changes after successful compilation
-    if (compilationState === 'success' || isPreviewReady) {
+    if (compilationStateRef.current === 'success' || isPreviewReadyRef.current) {
+      console.log('[ComponentCreationForm] Code changed after success, resetting states')
       setCompilationState('idle')
-      setShowPreview(false)
       setIsPreviewReady(false)
+      // Don't hide preview - keep it visible but reset the compilation state
     }
-  }
+  }, [])
 
-  const handleCompile = () => {
+  const handleCompilationStart = useCallback(() => {
+    console.log('[ComponentCreationForm] onCompilationStart called')
     setCompilationState('compiling')
     setCompilationError(null)
-    setShowPreview(true)
     setIsPreviewReady(false)
-  }
+  }, [])
 
-  const handleCompilationStart = () => {
-    // Compilation state already set in handleCompile
-    setIsPreviewReady(false)
-  }
-
-  const handleCompilationEnd = (success: boolean) => {
+  const handleCompilationEnd = useCallback((success: boolean) => {
+    console.log('[ComponentCreationForm] onCompilationEnd called, success:', success)
     if (success) {
       setCompilationState('success')
       setCompilationError(null)
-      // Mark preview as ready when compilation succeeds
       setIsPreviewReady(true)
     } else {
       setCompilationState('error')
       setCompilationError('Compilation failed. Check your code for errors.')
       setIsPreviewReady(false)
-      // Don't hide preview so user can see the error output
     }
+  }, [])
+
+  // Use the shared state hook for editor/preview synchronization
+  const {
+    code,
+    setCode,
+    isCompiling,
+    compileCode,
+    editorProps,
+    previewProps,
+    previewRef
+  } = useKotlinCompose({
+    initialCode: formData.code,
+    autoCompile: false,
+    onCodeChange: handleCodeChange,
+    onCompilationStart: handleCompilationStart,
+    onCompilationEnd: handleCompilationEnd
+  })
+
+  const handleCompile = () => {
+    setShowPreview(true)
+    // Use a longer delay to ensure preview is mounted and playground is ready
+    setTimeout(() => {
+      compileCode()
+    }, 1000) // Increased delay to give playground time to initialize
   }
 
   const capturePreviewScreenshot = async (): Promise<Blob | null> => {
-    if (!previewRef.current) return null
+    if (!previewContainerRef.current) return null
     
     try {
       // Find the iframe inside the preview container
-      const iframe = previewRef.current.querySelector('.k2js-iframe') as HTMLIFrameElement
+      const iframe = previewContainerRef.current.querySelector('.k2js-iframe') as HTMLIFrameElement
       if (!iframe) return null
       
       // Get the canvas element from inside the iframe
@@ -292,12 +327,10 @@ export function ComponentCreationForm({
           <div className="space-y-4">
             <div className="border rounded-md overflow-hidden">
               <KotlinComposeEditor
-                code={formData.code}
+                {...editorProps}
                 height="400px"
                 theme="darcula"
                 outputHeight={0}
-                onCodeChange={handleCodeChange}
-                showRunButton={false}
               />
             </div>
             
@@ -317,14 +350,13 @@ export function ComponentCreationForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div ref={previewRef} className="border rounded-md overflow-hidden">
+          <div ref={previewContainerRef} className="border rounded-md overflow-hidden">
             <KotlinComposePreview
-              code={formData.code}
+              ref={previewRef}
+              {...previewProps}
               height="400px"
-              onCompilationStart={handleCompilationStart}
-              onCompilationEnd={handleCompilationEnd}
               showLoadingState={false}
-              autoCompile={showPreview}
+              autoCompile={false}
             />
           </div>
             
@@ -387,10 +419,10 @@ export function ComponentCreationForm({
           <Button 
             type="button"
             onClick={handleCompile}
-            disabled={compilationState === 'compiling' || (compilationState === 'success' && !isPreviewReady)}
+            disabled={isCompiling || (compilationState === 'success' && !isPreviewReady)}
             className="flex-1"
           >
-            {compilationState === 'compiling' || (compilationState === 'success' && !isPreviewReady) ? (
+            {isCompiling || (compilationState === 'success' && !isPreviewReady) ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Compiling...

@@ -96,12 +96,48 @@ KotlinPlayground (base component in parent directory)
 
 ## Architecture Notes
 
-1. **State Management**: Each component manages its own state independently
-2. **Compilation Flow**: Preview component tracks compilation state for screenshot capture
-3. **Error Handling**: Both components handle errors gracefully with user feedback
-4. **Performance**: Code change detection uses polling due to Kotlin Playground API limitations
+### Event-Based Architecture
+The Kotlin Playground components now use a robust event-based architecture instead of polling:
+
+1. **Code Change Detection**: 
+   - Direct CodeMirror event listeners (`cm.on('change')`) for immediate feedback
+   - No more polling delays or race conditions
+   - Instant synchronization between editor and preview
+
+2. **Compilation State Tracking**:
+   - MutationObserver monitors DOM changes in the output area
+   - Detects compilation start, success, and errors in real-time
+   - Proper state management through callbacks
+
+3. **Shared State Management**:
+   - `useKotlinCompose` hook provides centralized state
+   - Editor and preview components share a single source of truth
+   - Automatic synchronization of code changes
+
+4. **Error Handling**: 
+   - Graceful error detection through DOM observation
+   - User-friendly error messages
+   - Compilation state properly resets on code changes
+
+## Event System Details
+
+### CodeMirror Events
+- **change**: Fired when code is edited in the editor
+- Directly attached to the CodeMirror instance for zero-latency updates
+- Properly handles event listener cleanup on unmount
+
+### Compilation Events
+- **onCompilationStart**: Called when compile button is clicked
+- **onCompilationEnd**: Called with success/failure status
+- Uses MutationObserver to detect output changes
+
+### State Synchronization
+- Preview component uses `readOnly={false}` to enable internal state updates
+- Code prop changes trigger CodeMirror value updates
+- Prevents infinite loops with temporary event handler removal
 
 ## Related Files
 - `/src/hooks/useKotlinPlayground.ts`: Hook for loading playground scripts
+- `/src/hooks/useKotlinCompose.ts`: Shared state hook for editor/preview sync
 - `/src/types/kotlin-playground.d.ts`: TypeScript definitions
 - `/src/components/compose-preview.tsx`: High-level component using these
