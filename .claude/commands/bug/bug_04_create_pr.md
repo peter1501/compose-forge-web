@@ -50,6 +50,7 @@ All PRs should be based off and merged into the main branch.
 #### **Phase 2: PR Creation**
 
 1. **GitHub PR Creation** (Senior Engineer)
+   - Use GitHub MCP server tool (mcp__github__create_pull_request) to create PR programmatically
    - Create PR with comprehensive description
    - Target branch appropriate (typically `main` unless explicitly requested otherwise)
    - Link to original bug report issue
@@ -243,7 +244,18 @@ npm run type-check
 npm test
 npm run build
 
-# Create comprehensive PR
+# Create comprehensive PR using GitHub MCP server
+# Use the mcp__github__create_pull_request tool with:
+# - owner: repository owner
+# - repo: repository name
+# - title: "fix: [Bug Title] (#[issue-number])"
+# - head: current branch name (fix/<ticket-id>-<description>)
+# - base: "main"
+# - body: Full PR description using the template above
+# - draft: false
+# - maintainer_can_modify: true
+
+# Alternative: Create PR using gh CLI
 gh pr create \
   --title "fix: [Bug Title] (#[issue-number])" \
   --body "$(cat <<'EOF'
