@@ -30,9 +30,13 @@ interface KotlinPlaygroundProps {
   autoComplete?: boolean
   highlightOnFly?: boolean
   onCodeChange?: (code: string) => void
+  onCompileStart?: () => void
+  onCompileEnd?: (success: boolean, errors?: string[]) => void
+  onPlaygroundReady?: (instance: any) => void
   className?: string
   readOnly?: boolean
   autoRun?: boolean
+  compileOnClick?: () => boolean
 }
 
 export function KotlinPlayground({
@@ -45,12 +49,17 @@ export function KotlinPlayground({
   autoComplete = false,
   highlightOnFly = false,
   onCodeChange,
+  onCompileStart,
+  onCompileEnd,
+  onPlaygroundReady,
   className,
   readOnly = false,
-  autoRun = false
+  autoRun = false,
+  compileOnClick
 }: KotlinPlaygroundProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const codeRef = useRef<HTMLElement>(null)
+  const playgroundInstanceRef = useRef<any>(null)
   const [isInitialized, setIsInitialized] = useState(false)
   const { isLoaded, error } = useKotlinPlayground({
     theme,
@@ -88,6 +97,20 @@ export function KotlinPlayground({
           config['none-editable'] = 'true'
         }
 
+        // Set up code change listener BEFORE initialization
+        if (onCodeChange && !highlightOnly && !readOnly) {
+          // Define the callback in window scope
+          (window as any).onCodeChangeHandler = (newCode: string) => {
+            console.log('[KotlinPlayground] onChange callback triggered, code length:', newCode.length)
+            onCodeChange(newCode)
+          }
+          // Set the onChange callback via data attribute
+          if (codeRef.current) {
+            codeRef.current.setAttribute('data-on-change-opened', 'onCodeChangeHandler')
+            console.log('[KotlinPlayground] onChange attribute set')
+          }
+        }
+
         // Apply configuration to the code element
         Object.entries(config).forEach(([key, value]) => {
           if (codeRef.current) {
@@ -95,63 +118,103 @@ export function KotlinPlayground({
           }
         })
 
+
         // Initialize the playground
+        console.log('[KotlinPlayground] Initializing playground')
         window.KotlinPlayground(codeRef.current)
         setIsInitialized(true)
-
-        // Set up code change listener if needed
-        if (onCodeChange && !highlightOnly && !readOnly) {
-          // Wait a bit for CodeMirror to fully initialize
-          setTimeout(() => {
-            // Poll for changes since Kotlin Playground doesn't expose a clean API
-            const checkForChanges = () => {
-              try {
-                const codeMirror = containerRef.current?.querySelector('.CodeMirror')
-                if (codeMirror) {
-                  // Try to find the CodeMirror instance through various methods
-                  let cmInstance = null
-                  
-                  // Method 1: Check if CodeMirror is attached to the element
-                  if ((codeMirror as any).CodeMirror) {
-                    cmInstance = (codeMirror as any).CodeMirror
-                  }
-                  
-                  // Method 2: Check for global CodeMirror instances
-                  if (!cmInstance && (window as any).CodeMirror) {
-                    const editors = (window as any).CodeMirror.editors
-                    if (editors && editors.length > 0) {
-                      cmInstance = editors[editors.length - 1]
-                    }
-                  }
-                  
-                  // Method 3: Try to get value from the textarea
-                  if (!cmInstance) {
-                    const textarea = containerRef.current?.querySelector('textarea')
-                    if (textarea) {
-                      const currentCode = (textarea as HTMLTextAreaElement).value
-                      if (currentCode && currentCode !== code) {
-                        onCodeChange(currentCode)
-                      }
-                      return
-                    }
-                  }
-                  
-                  if (cmInstance && typeof cmInstance.getValue === 'function') {
-                    const currentCode = cmInstance.getValue()
-                    if (currentCode !== code) {
-                      onCodeChange(currentCode)
-                    }
-                  }
-                }
-              } catch (err) {
-                // Silently ignore errors during polling
+        console.log('[KotlinPlayground] Playground initialized')
+        
+        // Set up event handlers after initialization
+        setTimeout(() => {
+          const wrapper = containerRef.current?.querySelector('.executable-fragment-wrapper') as HTMLElement
+          if (wrapper) {
+            console.log('[KotlinPlayground] Setting up event handlers on wrapper')
+            
+            // Try to set up CodeMirror change handler directly
+            if (onCodeChange && !highlightOnly && !readOnly) {
+              const codeMirrorElement = wrapper.querySelector('.CodeMirror') as any
+              if (codeMirrorElement?.CodeMirror) {
+                const cm = codeMirrorElement.CodeMirror
+                console.log('[KotlinPlayground] Found CodeMirror instance, setting up change handler')
+                cm.on('change', () => {
+                  const newCode = cm.getValue()
+                  console.log('[KotlinPlayground] CodeMirror change detected, code length:', newCode.length)
+                  onCodeChange(newCode)
+                })
               }
             }
             
-            // Store interval for cleanup
-            (containerRef.current as any)._checkInterval = window.setInterval(checkForChanges, 500)
-          }, 1500) // Wait for playground to initialize
-        }
+            // Find the run button
+            const runButton = wrapper.querySelector('.run-button') as HTMLElement
+            if (runButton && (onCompileStart || onCompileEnd)) {
+              console.log('[KotlinPlayground] Found run button, setting up click handler')
+              
+              // Store original onclick
+              const originalOnClick = runButton.onclick
+              
+              // Override onclick
+              runButton.onclick = function(e) {
+                console.log('[KotlinPlayground] Run button clicked via our handler')
+                if (onCompileStart) {
+                  console.log('[KotlinPlayground] Calling onCompileStart')
+                  onCompileStart()
+                }
+                
+                // Set up mutation observer for compilation results
+                const outputArea = wrapper.querySelector('.js-code-output-executor') || 
+                                  wrapper.querySelector('.console')
+                console.log('[KotlinPlayground] Output area found:', !!outputArea)
+                
+                if (outputArea && onCompileEnd) {
+                  const observer = new MutationObserver((mutations) => {
+                    console.log('[KotlinPlayground] Mutation observed')
+                    // Check for errors
+                    const hasErrors = wrapper.querySelector('.errors-output') || 
+                                     wrapper.querySelector('.js-exception')
+                    
+                    // Check for successful output (iframe with content)
+                    const iframe = wrapper.querySelector('.k2js-iframe') as HTMLIFrameElement
+                    let success = false
+                    
+                    if (iframe && !hasErrors) {
+                      try {
+                        const iframeDoc = iframe.contentDocument
+                        const canvas = iframeDoc?.querySelector('canvas#ComposeTarget')
+                        success = !!canvas || !!(iframeDoc?.body?.textContent?.trim())
+                      } catch (e) {
+                        // Cross-origin, assume success if iframe exists
+                        success = true
+                      }
+                    }
+
+                    if (hasErrors || success) {
+                      observer.disconnect()
+                      if (onCompileEnd) {
+                        const errors = hasErrors ? 
+                          Array.from(wrapper.querySelectorAll('.errors-output')).map(e => e.textContent || '') : 
+                          undefined
+                        onCompileEnd(!hasErrors && success, errors)
+                      }
+                    }
+                  })
+                  
+                  observer.observe(outputArea.parentElement || outputArea, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['class']
+                  })
+                }
+                
+                // Call original handler
+                if (originalOnClick) {
+                  return originalOnClick.call(this, e)
+                }
+              }
+            }
+          }
+        }, 500) // Wait for playground DOM to be ready
 
         // Auto-run if specified
         if (autoRun && !highlightOnly) {
@@ -174,7 +237,6 @@ export function KotlinPlayground({
               if (cursors) {
                 cursors.style.display = 'none'
               }
-              // Also make lines non-selectable
               const lines = editor.querySelector('.CodeMirror-lines') as HTMLElement
               if (lines) {
                 lines.style.cursor = 'default'
@@ -186,15 +248,112 @@ export function KotlinPlayground({
     } catch (err) {
       console.error('Failed to initialize Kotlin Playground:', err)
     }
-  }, [isLoaded, isInitialized, highlightOnly, theme, targetPlatform, outputHeight, autoComplete, highlightOnFly, onCodeChange, readOnly, autoRun, code])
+  }, [isLoaded, isInitialized, highlightOnly, theme, targetPlatform, outputHeight, autoComplete, highlightOnFly, onCodeChange, readOnly, autoRun, onCompileStart, onCompileEnd, onPlaygroundReady, compileOnClick])
+
+  // Update code in CodeMirror when prop changes
+  useEffect(() => {
+    if (isInitialized) {
+      const wrapper = containerRef.current?.querySelector('.executable-fragment-wrapper') as HTMLElement
+      if (wrapper) {
+        // Update the hidden textarea that Kotlin Playground uses
+        const textarea = wrapper.querySelector('textarea') as HTMLTextAreaElement
+        if (textarea && textarea.value !== code) {
+          console.log('[KotlinPlayground] Updating internal code, new length:', code.length)
+          textarea.value = code
+          
+          // Update CodeMirror instance if it exists
+          const codeMirrorElement = wrapper.querySelector('.CodeMirror') as any
+          if (codeMirrorElement?.CodeMirror) {
+            const cm = codeMirrorElement.CodeMirror
+            const currentValue = cm.getValue()
+            if (currentValue !== code) {
+              console.log('[KotlinPlayground] Updating CodeMirror value')
+              // Temporarily remove change listener to avoid infinite loop
+              const changeHandler = cm._handlers?.change?.[0]
+              if (changeHandler) cm.off('change', changeHandler)
+              
+              cm.setValue(code)
+              
+              // Re-add change listener after a short delay
+              if (changeHandler) {
+                setTimeout(() => cm.on('change', changeHandler), 100)
+              }
+            }
+          }
+          
+          // Also update the visible code display
+          const codeDisplay = wrapper.querySelector('.code-area pre') as HTMLElement
+          if (codeDisplay) {
+            codeDisplay.textContent = code
+          }
+        }
+      }
+    }
+  }, [code, isInitialized])
+
+  // Expose execute method via ref
+  useEffect(() => {
+    if (containerRef.current && isInitialized) {
+      (containerRef.current as any).executeCode = () => {
+        const runButton = containerRef.current?.querySelector('.run-button') as HTMLElement
+        console.log('[KotlinPlayground] executeCode called, runButton:', runButton)
+        
+        if (runButton) {
+          // Log current code content before execution
+          const wrapper = containerRef.current?.querySelector('.executable-fragment-wrapper') as HTMLElement
+          if (wrapper) {
+            const textarea = wrapper.querySelector('textarea') as HTMLTextAreaElement
+            const codeArea = wrapper.querySelector('.code-area pre') as HTMLElement
+            console.log('[KotlinPlayground] Before execution - textarea length:', textarea?.value?.length, 'codeArea length:', codeArea?.textContent?.length)
+            console.log('[KotlinPlayground] Current prop code length:', code.length)
+          }
+          
+          // Check if button is disabled - check both classList and className
+          const isDisabled = runButton.classList.contains('_disabled') || runButton.className.includes('_disabled')
+          console.log('[KotlinPlayground] Run button classes:', runButton.className, 'isDisabled:', isDisabled)
+          
+          if (isDisabled) {
+            console.log('[KotlinPlayground] Run button is disabled, waiting for it to be enabled...')
+            
+            // Wait for button to be enabled
+            let attempts = 0
+            const checkInterval = setInterval(() => {
+              attempts++
+              const button = containerRef.current?.querySelector('.run-button') as HTMLElement
+              
+              if (button && !button.classList.contains('_disabled') && !button.className.includes('_disabled')) {
+                clearInterval(checkInterval)
+                console.log('[KotlinPlayground] Run button is now enabled, clicking it')
+                button.click()
+              } else if (attempts > 50) { // 5 seconds timeout
+                clearInterval(checkInterval)
+                console.warn('[KotlinPlayground] Timeout waiting for run button to be enabled')
+              }
+            }, 100)
+          } else {
+            // Button is already enabled, click it
+            console.log('[KotlinPlayground] Run button is enabled, clicking it')
+            console.log('[KotlinPlayground] Button onclick:', runButton.onclick)
+            runButton.click()
+            console.log('[KotlinPlayground] Button clicked')
+          }
+        } else if (playgroundInstanceRef.current?.execute) {
+          console.log('[KotlinPlayground] Using instance.execute()')
+          playgroundInstanceRef.current.execute()
+        } else {
+          console.warn('[KotlinPlayground] No execution method available')
+        }
+      }
+      console.log('[KotlinPlayground] executeCode method attached to container')
+    }
+  }, [isInitialized])
 
   // Cleanup on unmount
   useEffect(() => {
-    const currentRef = containerRef.current
     return () => {
-      const checkInterval = (currentRef as any)?._checkInterval
-      if (checkInterval) {
-        clearInterval(checkInterval)
+      // Clean up global onChange handler
+      if ((window as any).onCodeChangeHandler) {
+        delete (window as any).onCodeChangeHandler
       }
     }
   }, [])

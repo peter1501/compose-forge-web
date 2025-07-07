@@ -8,3 +8,7 @@ export { ComposeComponentGrid } from './component-grid'
 // Kotlin Playground components
 export { KotlinComposeEditor } from './kotlin-playground/kotlin-compose-editor'
 export { KotlinComposePreview } from './kotlin-playground/kotlin-compose-preview'
+export { KotlinPlayground } from './kotlin-playground'
+
+// Example component
+export { KotlinPlaygroundExample } from './kotlin-playground-example'
