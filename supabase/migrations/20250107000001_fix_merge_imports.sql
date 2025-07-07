@@ -1,22 +1,34 @@
--- Migration to merge imports field into code field
--- This updates existing components to include imports in the code field
+-- Fix migration to safely handle the imports column merge
+-- This checks if the column exists before trying to use it
 
 -- First drop the view that depends on the imports column
 DROP VIEW IF EXISTS compose_components_with_stats;
 
--- Update existing components to merge imports into code
-UPDATE compose_components
-SET code = CASE 
-    WHEN imports IS NOT NULL AND imports != '' THEN 
-        imports || E'\n\n' || code
-    ELSE 
-        code
-END
-WHERE imports IS NOT NULL AND imports != '';
+-- Check if imports column exists and merge it if it does
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_name = 'compose_components' 
+        AND column_name = 'imports'
+    ) THEN
+        -- Update existing components to merge imports into code
+        UPDATE compose_components
+        SET code = CASE 
+            WHEN imports IS NOT NULL AND imports != '' THEN 
+                imports || E'\n\n' || code
+            ELSE 
+                code
+        END
+        WHERE imports IS NOT NULL AND imports != '';
+        
+        -- Drop the imports column
+        ALTER TABLE compose_components DROP COLUMN imports;
+    END IF;
+END $$;
 
--- Now we can drop the imports column
-ALTER TABLE compose_components DROP COLUMN imports;
-
+-- Recreate the view without the imports column
 CREATE VIEW compose_components_with_stats AS
 SELECT 
     c.id,

@@ -3,10 +3,9 @@ import { createClient } from '@/utils/supabase/server'
 import { getComposeComponentWithStats } from '@/lib/services/compose-components'
 import { NavigationLayout } from '@/components/navigation-layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Download, Heart, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { ComponentDetailView } from '@/components/compose-components/component-detail-view'
-import { ComponentActions } from './_components/component-actions'
+import { ComponentDetailClient } from './_components/component-detail-client'
 
 export default async function ComponentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -17,16 +16,6 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
   let component
   try {
     component = await getComposeComponentWithStats(id)
-    
-    // Increment view count
-    try {
-      await supabase
-        .from('compose_components')
-        .update({ view_count: component.view_count + 1 })
-        .eq('id', id)
-    } catch (error) {
-      console.error('Failed to increment view count:', error)
-    }
   } catch (error) {
     notFound()
   }
@@ -48,37 +37,8 @@ export default async function ComponentDetailPage({ params }: { params: Promise<
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Stats */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-muted-foreground">
-                      <Download className="h-4 w-4" />
-                      <span>Downloads</span>
-                    </div>
-                    <span className="font-semibold">{component.download_count.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-muted-foreground">
-                      <Heart className="h-4 w-4" />
-                      <span>Favorites</span>
-                    </div>
-                    <span className="font-semibold">{component.favorite_count.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-muted-foreground">
-                      <Eye className="h-4 w-4" />
-                      <span>Views</span>
-                    </div>
-                    <span className="font-semibold">{component.view_count.toLocaleString()}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Actions */}
-            <ComponentActions component={component} user={user} />
+            {/* Stats and Actions */}
+            <ComponentDetailClient component={component} user={user} />
 
             {/* Technical Details */}
             <Card>
